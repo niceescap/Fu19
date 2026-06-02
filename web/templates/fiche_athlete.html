@@ -9,6 +9,14 @@
 <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@300;400;700;900&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
 
 <style>
+   
+   <!-- Open Graph -->
+<meta property="og:title" content="{{ athlete.prenom }} {{ athlete.nom }} — FJC Rider Card">
+<meta property="og:description" content="Fiche athlète certifiée — Junior {{ athlete.junior_horizon }} · {{ athlete.nationalite }}">
+<meta property="og:image" content="https://proto.fu19.org{{ athlete.avatar_url }}">
+<meta property="og:url" content="https://proto.fu19.org/fiche/{{ athlete.id }}">
+<meta property="og:type" content="profile">
+   
     * { margin:0; padding:0; box-sizing:border-box; }
 
     body {
