@@ -610,12 +610,10 @@ def fit_delete(athlete_id, filename):
 # NOTE : run_for_athlete (fit_parser_patch.py) doit accepter fit_path
 # sous forme de liste de Path en plus d'un Path unique.
 # Patch minimal si ce n'est pas encore le cas — voir run_for_athlete ci-dessous.
-# ==============================================================================
-
-
-# ==============================================================================
+# ============================================================================
 # LANCEMENT
 # ==============================================================================
+# Gunicorn gère le lancement en production.
+# Pour le développement local : gunicorn --bind 127.0.0.1:8000 app:app
 
-if __name__ == "__main__":
-    app.run(debug=DEBUG, port=8000, host="0.0.0.0")
+
