@@ -40,15 +40,10 @@ DEBUG = ENV == "DEVELOPMENT"
 # 3. CONFIGURATION DES BASES DE DONNÉES
 # ==============================================================================
 if ENV == "PRODUCTION":
-    DB_CONNECTION_STRING = os.environ.get(
-        "DATABASE_URL",
-        "postgresql://user:password@localhost:5432/fjc_prod"
-    )
+    DB_CONNECTION_STRING = os.environ.get("DATABASE_URL", "")
 else:
     DB_FILE = DATA_DIR / "app.db"
     DB_CONNECTION_STRING = f"sqlite:///{DB_FILE}"
-
-
 # ==============================================================================
 # 4. CONFIGURATION DE LA SÉCURITÉ ET DES SESSIONS
 # ==============================================================================
@@ -99,7 +94,7 @@ ARCHIVE_RETENTION_YEARS = 15
 # ==============================================================================
 # 7. CONFIGURATION WEB ET TEMPLATES
 # ==============================================================================
-BASE_URL      = "http://127.0.0.1:8000"
+BASE_URL = os.environ.get("BASE_URL", "https://proto.fu19.org")
 
 WEB_DIR       = BASE_DIR / "web"
 TEMPLATES_DIR = WEB_DIR / "templates"
