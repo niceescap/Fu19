@@ -1,0 +1,42 @@
+[
+  {
+    "role": "user",
+    "content": "Lunettes violet,plus de bleu sur le maillot et chassettes rouges"
+  },
+  {
+    "role": "assistant",
+    "content": "{\n  \"message\": \"L'avatar a maintenant un look encore plus personnalisé !\",\n  \"changes\": {\n    \"glasses\": \"#7a288a\",\n    \"jersey\": \"#add8e6\",\n    \"socks\": \"#ff0000\"\n  }\n}"
+  },
+  {
+    "role": "user",
+    "content": "Casque violet"
+  },
+  {
+    "role": "assistant",
+    "content": "{\n  \"message\": \"Le casque de l'avatar est maintenant violet !\",\n  \"changes\": {\n    \"helmet\": \"#7a288a\"\n  }\n}"
+  },
+  {
+    "role": "user",
+    "content": "Cheveux blonds plus réaliste"
+  },
+  {
+    "role": "assistant",
+    "content": "{\n  \"message\": \"Les cheveux de l'avatar sont maintenant plus blonds et réalistes !\",\n  \"changes\": {\n    \"hairs\": \"#fccd00\"\n  }\n}"
+  },
+  {
+    "role": "user",
+    "content": "Chaussures blanches et écran lunette iridium"
+  },
+  {
+    "role": "assistant",
+    "content": "{\n  \"message\": \"Les chaussures et l'écran de lunette de l'avatar ont été mis à jour !\",\n  \"changes\": {\n    \"shoes\": \"#ffffff\",\n    \"screen\": \"#3d3d3d\"\n  }\n}"
+  },
+  {
+    "role": "user",
+    "content": "Écran des lunettes orange foncé"
+  },
+  {
+    "role": "assistant",
+    "content": "{\n  \"message\": \"L'écran des lunettes de l'avatar est maintenant orange foncé !\",\n  \"changes\": {\n    \"screen\": \"#ff9900\"\n  }\n}"
+  }
+]

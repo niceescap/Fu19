@@ -1,0 +1,235 @@
+{% extends "base.html" %}
+{% set hide_sidebar = True %}
+
+{% block title %}MediaLinks Chatbot — {{ athlete_id }}{% endblock %}
+
+{% block extra_head %}
+<style>
+    /* Styles additionnels pour les bulles de chat et le drag & drop */
+    .chat-container {
+        scroll-behavior: smooth;
+    }
+    .chat-bubble-user {
+        background: #2563eb;
+        color: white;
+        align-self: flex-end;
+        border-radius: 16px 16px 4px 16px;
+        padding: 8px 14px;
+        max-width: 80%;
+        word-wrap: break-word;
+    }
+    .chat-bubble-bot {
+        background: #1f2937;
+        color: #e5e7eb;
+        align-self: flex-start;
+        border-radius: 16px 16px 16px 4px;
+        padding: 8px 14px;
+        max-width: 80%;
+        word-wrap: break-word;
+    }
+    .media-card {
+        transition: transform 0.2s ease, box-shadow 0.2s ease;
+        cursor: grab;
+    }
+    .media-card:active {
+        cursor: grabbing;
+    }
+    .media-card.dragging {
+        opacity: 0.5;
+        transform: scale(0.95);
+    }
+    .drop-zone {
+        border: 2px dashed transparent;
+    }
+    .drop-zone.over {
+        border-color: #3b82f6;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="flex flex-col lg:flex-row gap-6 h-full">
+    <!-- Colonne gauche : Chatbot -->
+    <div class="w-full lg:w-2/5 flex flex-col bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
+        <div class="bg-slate-50 border-b border-slate-200 px-4 py-3 flex items-center justify-between">
+            <h2 class="text-lg font-bold text-slate-800">🤖 Assistant Médias</h2>
+            <span class="text-xs text-slate-500 font-mono">{{ athlete_id }}</span>
+        </div>
+
+        <!-- Historique des messages -->
+        <div id="chat-box" class="flex-1 p-4 space-y-3 overflow-y-auto chat-container bg-white">
+            {% if chat_history %}
+                {% for msg in chat_history %}
+                    {% if msg.role == 'user' %}
+                    <div class="flex justify-end">
+                        <div class="chat-bubble-user">{{ msg.content }}</div>
+                    </div>
+                    {% else %}
+                    <div class="flex justify-start">
+                        <div class="chat-bubble-bot">{{ msg.content }}</div>
+                    </div>
+                    {% endif %}
+                {% endfor %}
+            {% else %}
+                <div class="text-center text-slate-400 py-12">
+                    <p>Collez vos liens ici (Instagram, TikTok, YouTube, Strava…)</p>
+                    <p class="text-xs mt-2">Le chatbot les analysera et générera des aperçus.</p>
+                </div>
+            {% endif %}
+        </div>
+
+        <!-- Formulaire d'envoi -->
+        <form method="POST" action="/medialinks/{{ athlete_id }}/send_message" class="border-t border-slate-200 p-3 flex gap-2 bg-slate-50">
+            <input type="text" name="message" placeholder="Ex: https://www.instagram.com/p/..." required
+                   class="flex-1 rounded-lg border border-slate-200 px-3 py-2 text-sm focus:border-indigo-400 focus:outline-none focus:ring-1 focus:ring-indigo-400">
+            <button type="submit"
+                    class="rounded-md bg-indigo-600 px-4 py-2 text-sm font-semibold text-white shadow-sm hover:bg-indigo-500 transition-colors">
+                Envoyer
+            </button>
+        </form>
+    </div>
+
+    <!-- Colonne droite : Médias collectés -->
+    <div class="w-full lg:w-3/5 flex flex-col bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
+        <div class="bg-slate-50 border-b border-slate-200 px-4 py-3 flex items-center justify-between">
+            <h2 class="text-lg font-bold text-slate-800">📱 Aperçu des cartes médias</h2>
+            <span class="text-xs text-slate-500">{{ media_list|length }} élément(s)</span>
+        </div>
+
+        <!-- Grille des cartes médias (drag & drop) -->
+        {% if media_list %}
+        <div id="media-grid" class="p-4 grid grid-cols-1 sm:grid-cols-2 gap-3 overflow-y-auto flex-1">
+            {% for media in media_list %}
+            <div class="media-card bg-white border border-slate-200 rounded-lg shadow-sm hover:shadow-md transition-shadow"
+                 draggable="true"
+                 data-index="{{ loop.index0 }}"
+                 data-url="{{ media.url }}">
+                <!-- En-tête de la carte (plateforme) -->
+                <div class="px-3 py-2 bg-slate-100 border-b border-slate-200 flex justify-between items-center">
+                    <span class="text-xs font-bold uppercase text-slate-600">
+                        {{ media.platform or media.type }}
+                    </span>
+                    <button onclick="event.preventDefault(); removeMedia({{ loop.index0 }})"
+                            class="text-slate-400 hover:text-red-500 transition-colors text-lg leading-none"
+                            title="Supprimer ce média">✕</button>
+                </div>
+                <!-- Contenu de la carte -->
+                <div class="p-3">
+                    {% if media.thumbnail %}
+                    <img src="{{ media.thumbnail }}" alt="aperçu" class="w-full h-24 object-cover rounded-md mb-2">
+                    {% endif %}
+                    <p class="text-sm font-semibold text-slate-800 truncate">{{ media.title or media.url }}</p>
+                    <p class="text-xs text-slate-400 mt-1 truncate">{{ media.url }}</p>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+        {% else %}
+        <div class="flex-1 flex items-center justify-center text-slate-400 p-8">
+            <div class="text-center">
+                <p>Aucun média collecté.</p>
+                <p class="text-xs mt-1">Envoyez des liens dans le chat pour les voir apparaître ici.</p>
+            </div>
+        </div>
+        {% endif %}
+
+        <!-- Bouton de validation -->
+        <div class="border-t border-slate-200 p-3 bg-slate-50 flex justify-end">
+            <form method="POST" action="/medialinks/{{ athlete_id }}/validate" class="flex gap-2">
+                <a href="/fiche/{{ athlete_id }}/edit" 
+                   class="rounded-md border border-slate-200 bg-white px-4 py-2 text-sm font-semibold text-slate-600 hover:bg-slate-100 transition-colors">
+                    Annuler
+                </a>
+                <button type="submit"
+                        class="rounded-md bg-indigo-600 px-5 py-2 text-sm font-semibold text-white shadow-sm hover:bg-indigo-500 transition-colors">
+                    ✅ Valider & enregistrer
+                </button>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Script pour le drag & drop et la suppression -->
+<script>
+    let draggedItem = null;
+
+    // Gestion du drag & drop sur les cartes média
+    const mediaGrid = document.getElementById('media-grid');
+    if (mediaGrid) {
+        const cards = mediaGrid.querySelectorAll('.media-card');
+        cards.forEach(card => {
+            card.addEventListener('dragstart', (e) => {
+                draggedItem = card;
+                card.classList.add('dragging');
+                e.dataTransfer.effectAllowed = 'move';
+                e.dataTransfer.setData('text/plain', card.dataset.index);
+            });
+            card.addEventListener('dragend', (e) => {
+                card.classList.remove('dragging');
+                draggedItem = null;
+                // Retirer les classes "over" des zones de drop
+                document.querySelectorAll('.media-card').forEach(c => c.classList.remove('over'));
+            });
+            card.addEventListener('dragover', (e) => {
+                e.preventDefault();
+                e.dataTransfer.dropEffect = 'move';
+                card.classList.add('over');
+            });
+            card.addEventListener('dragleave', (e) => {
+                card.classList.remove('over');
+            });
+            card.addEventListener('drop', (e) => {
+                e.preventDefault();
+                card.classList.remove('over');
+                if (draggedItem && draggedItem !== card) {
+                    // Échange de position dans le DOM
+                    const parent = card.parentNode;
+                    const draggedIndex = Array.from(parent.children).indexOf(draggedItem);
+                    const targetIndex = Array.from(parent.children).indexOf(card);
+                    if (draggedIndex < targetIndex) {
+                        parent.insertBefore(draggedItem, card.nextSibling);
+                    } else {
+                        parent.insertBefore(draggedItem, card);
+                    }
+                    // Mettre à jour les data-index
+                    updateDataIndices(parent);
+                    // Envoyer le nouvel ordre au serveur
+                    sendReorderRequest(parent);
+                }
+            });
+        });
+    }
+
+    function updateDataIndices(container) {
+        const items = container.querySelectorAll('.media-card');
+        items.forEach((item, idx) => {
+            item.dataset.index = idx;
+        });
+    }
+
+    function sendReorderRequest(container) {
+        const items = container.querySelectorAll('.media-card');
+        const order = Array.from(items).map(item => parseInt(item.dataset.index));
+        fetch('/medialinks/{{ athlete_id }}/reorder', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(order)
+        }).catch(err => console.error('Erreur réordonnancement:', err));
+    }
+
+    // Suppression d'un média
+    function removeMedia(index) {
+        if (confirm("Supprimer ce média ?")) {
+            fetch('/medialinks/{{ athlete_id }}/remove/' + index, { method: 'POST' })
+            .then(() => window.location.reload())
+            .catch(err => alert("Erreur lors de la suppression"));
+        }
+    }
+
+    // Scroll automatique en bas du chat
+    const chatBox = document.getElementById('chat-box');
+    if (chatBox) {
+        chatBox.scrollTop = chatBox.scrollHeight;
+    }
+</script>
+{% endblock %}

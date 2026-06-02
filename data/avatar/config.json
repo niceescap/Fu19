@@ -1,0 +1,102 @@
+{
+  "stack_order": [
+    "background",
+    "sketch",
+    "shoes",
+    "socks",
+    "short",
+    "skin",
+    "gloves",
+    "jersey",
+    "helmet",
+    "glasses",
+    "screen",
+    "hairs"
+  ],
+  "layers": {
+    "background": {
+      "label": "Fond",
+      "file": "Background.tiff",
+      "colorize": true,
+      "base_color": "#ffffff",
+      "opacity": 1.0
+    },
+    "sketch": {
+      "label": "Contours & ombre",
+      "file": "sketch.tiff",
+      "colorize": true,
+      "base_color": "#444444",
+      "opacity": 1.0
+    },
+    "shoes": {
+      "label": "Chaussures",
+      "file": "shoes.tiff",
+      "colorize": true,
+      "base_color": "#c4c4c4",
+      "opacity": 1.0
+    },
+    "socks": {
+      "label": "Chaussettes",
+      "file": "socks.tiff",
+      "colorize": true,
+      "base_color": "#c4c4c4",
+      "opacity": 1.0
+    },
+    "short": {
+      "label": "Cuissard",
+      "file": "short.tiff",
+      "colorize": true,
+      "base_color": "#c4c4c4",
+      "opacity": 1.0
+    },
+    "skin": {
+      "label": "Peau",
+      "file": "skin.tiff",
+      "colorize": true,
+      "base_color": "#c4c4c4",
+      "opacity": 1.0
+    },
+    "gloves": {
+      "label": "Gants",
+      "file": "gloves.tiff",
+      "colorize": true,
+      "base_color": "#c4c4c4",
+      "opacity": 1.0
+    },
+    "jersey": {
+      "label": "Maillot",
+      "file": "jersey.tiff",
+      "colorize": true,
+      "base_color": "#c4c4c4",
+      "opacity": 1.0
+    },
+    "helmet": {
+      "label": "Casque",
+      "file": "helmet.tiff",
+      "colorize": true,
+      "base_color": "#c4c4c4",
+      "opacity": 1.0
+    },
+    "glasses": {
+      "label": "Monture lunettes",
+      "file": "glasses.tiff",
+      "colorize": true,
+      "base_color": "#c4c4c4",
+      "opacity": 1.0
+    },
+    "screen": {
+      "label": "Écran lunettes",
+      "file": "screen.tiff",
+      "colorize": true,
+      "base_color": "#c4c4c4",
+      "opacity": 1.0
+    },
+    "hairs": {
+      "label": "Cheveux",
+      "file": "hairs.tiff",
+      "colorize": true,
+      "base_color": "#c4c4c4",
+      "opacity": 1.0
+    }
+  }
+}

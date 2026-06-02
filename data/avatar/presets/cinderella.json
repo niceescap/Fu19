@@ -1,0 +1,116 @@
+{
+  "_comment": "Avatar FJC — Configuration Colorisation (Thème : Cendrillon)",
+  "_version": "1.0",
+
+  "stack_order": [
+    "background",
+    "sketch",
+    "shoes",
+    "socks",
+    "short",
+    "skin",
+    "gloves",
+    "jersey",
+    "helmet",
+    "glasses",
+    "screen",
+    "hairs"
+  ],
+
+  "layers": {
+    "background": {
+      "label": "Fond",
+      "file": "Background.tiff",
+      "colorize": true,
+      "base_color": "#ffffff",
+      "opacity": 1.0
+    },
+    "sketch": {
+      "label": "Contours & ombre",
+      "file": "sketch.tiff",
+      "colorize": true,
+      "base_color": "#3a3d52",
+      "opacity": 1.0,
+      "note": "Un bleu-gris très sombre plutôt que du noir pur, pour garder la douceur du style Disney."
+    },
+    "shoes": {
+      "label": "Chaussures",
+      "file": "shoes.tiff",
+      "colorize": true,
+      "base_color": "#ddf2f8",
+      "opacity": 0.90,
+      "note": "Bleu très clair et cristallin pour imiter les pantoufles de verre."
+    },
+    "socks": {
+      "label": "Chaussettes",
+      "file": "socks.tiff",
+      "colorize": true,
+      "base_color": "#ffffff",
+      "opacity": 1.0
+    },
+    "short": {
+      "label": "Cuissard",
+      "file": "short.tiff",
+      "colorize": true,
+      "base_color": "#a4d4ec",
+      "opacity": 1.0,
+      "note": "Le bleu azur de sa robe de bal."
+    },
+    "skin": {
+      "label": "Peau",
+      "file": "skin.tiff",
+      "colorize": true,
+      "base_color": "#fce3ce",
+      "opacity": 1.0,
+      "note": "Teint de porcelaine classique."
+    },
+    "gloves": {
+      "label": "Gants",
+      "file": "gloves.tiff",
+      "colorize": true,
+      "base_color": "#ffffff",
+      "opacity": 1.0,
+      "note": "Blancs / bleu très pâle, pour rappeler ses gants de bal montants."
+    },
+    "jersey": {
+      "label": "Maillot",
+      "file": "jersey.tiff",
+      "colorize": true,
+      "base_color": "#c1e7f8",
+      "opacity": 1.0,
+      "note": "Bleu givré, légèrement plus clair que le cuissard pour structurer la silhouette."
+    },
+    "helmet": {
+      "label": "Casque",
+      "file": "helmet.tiff",
+      "colorize": true,
+      "base_color": "#a4d4ec",
+      "opacity": 1.0,
+      "note": "Rappel du bleu principal de la robe."
+    },
+    "glasses": {
+      "label": "Monture lunettes",
+      "file": "glasses.tiff",
+      "colorize": true,
+      "base_color": "#111111",
+      "opacity": 1.0,
+      "note": "Noir pur pour simuler son fameux ruban/ras-de-cou noir."
+    },
+    "screen": {
+      "label": "Écran lunettes",
+      "file": "screen.tiff",
+      "colorize": true,
+      "base_color": "#e0f7fa",
+      "opacity": 0.60,
+      "note": "Écran très clair, translucide avec des reflets magiques."
+    },
+    "hairs": {
+      "label": "Cheveux",
+      "file": "hairs.tiff",
+      "colorize": true,
+      "base_color": "#f3cb73",
+      "opacity": 1.0,
+      "note": "Blond doré iconique."
+    }
+  }
+}

@@ -1,0 +1,197 @@
+{
+  "generated_at": "2026-05-29T17:20:07.320711+00:00",
+  "rider_weight_kg": 38.0,
+  "athlete_id": "fjc_ath_260527_letr_2710",
+  "sessions_parsed": 3,
+  "power_curve": {
+    "5s": {
+      "watts": 428.8,
+      "w_kg": 11.284
+    },
+    "10s": {
+      "watts": 402.9,
+      "w_kg": 10.603
+    },
+    "15s": {
+      "watts": 363.5,
+      "w_kg": 9.567
+    },
+    "30s": {
+      "watts": 270.3,
+      "w_kg": 7.112
+    },
+    "45s": {
+      "watts": 218.9,
+      "w_kg": 5.761
+    },
+    "1min": {
+      "watts": 199.4,
+      "w_kg": 5.247
+    },
+    "2min": {
+      "watts": 164.1,
+      "w_kg": 4.319
+    },
+    "5min": {
+      "watts": 141.2,
+      "w_kg": 3.716
+    },
+    "10min": {
+      "watts": 129.3,
+      "w_kg": 3.402
+    },
+    "15min": {
+      "watts": 121.4,
+      "w_kg": 3.194
+    },
+    "30min": {
+      "watts": 106.8,
+      "w_kg": 2.809
+    },
+    "45min": {
+      "watts": 107.5,
+      "w_kg": 2.829
+    },
+    "60min": {
+      "watts": 102.8,
+      "w_kg": 2.706
+    }
+  },
+  "cadence_curve": {
+    "5s": {
+      "value": 137.0
+    },
+    "10s": {
+      "value": 136.9
+    },
+    "15s": {
+      "value": 132.4
+    },
+    "30s": {
+      "value": 118.4
+    },
+    "45s": {
+      "value": 112.3
+    },
+    "1min": {
+      "value": 111.7
+    },
+    "2min": {
+      "value": 109.1
+    },
+    "5min": {
+      "value": 100.4
+    },
+    "10min": {
+      "value": 98.4
+    },
+    "15min": {
+      "value": 96.2
+    },
+    "30min": {
+      "value": 94.6
+    },
+    "45min": {
+      "value": 94.0
+    },
+    "60min": {
+      "value": 90.3
+    }
+  },
+  "heart_rate_curve": {
+    "5s": {
+      "value": 187.0
+    },
+    "10s": {
+      "value": 187.0
+    },
+    "15s": {
+      "value": 186.9
+    },
+    "30s": {
+      "value": 186.0
+    },
+    "45s": {
+      "value": 185.2
+    },
+    "1min": {
+      "value": 184.2
+    },
+    "2min": {
+      "value": 180.1
+    },
+    "5min": {
+      "value": 169.6
+    },
+    "10min": {
+      "value": 168.5
+    },
+    "15min": {
+      "value": 166.1
+    },
+    "30min": {
+      "value": 153.6
+    },
+    "45min": {
+      "value": 152.7
+    },
+    "60min": {
+      "value": 145.9
+    }
+  },
+  "speed_curve": {
+    "5s": {
+      "value": 53.8
+    },
+    "10s": {
+      "value": 52.3
+    },
+    "15s": {
+      "value": 51.4
+    },
+    "30s": {
+      "value": 47.5
+    },
+    "45s": {
+      "value": 45.8
+    },
+    "1min": {
+      "value": 42.9
+    },
+    "2min": {
+      "value": 39.7
+    },
+    "5min": {
+      "value": 37.2
+    },
+    "10min": {
+      "value": 31.1
+    },
+    "15min": {
+      "value": 27.1
+    },
+    "30min": {
+      "value": 25.3
+    },
+    "45min": {
+      "value": 25.2
+    },
+    "60min": {
+      "value": 25.0
+    }
+  },
+  "ftp_w": 97.7,
+  "cardio_profile": {
+    "cursor": 0.613,
+    "fc_acceleration_bpm_min": 73.9,
+    "zone_haute_pct": 21.7,
+    "fc_max_observed": 181.0
+  },
+  "meta": {
+    "sessions_count": 3,
+    "has_power": true,
+    "has_cadence": true,
+    "has_heart_rate": true,
+    "has_speed": true
+  }
+}

@@ -1,0 +1,117 @@
+{
+  "_comment": "Avatar FJC — Configuration Colorisation (Thème : Jonas Vingegaard / Visma-Lease a Bike)",
+  "_version": "1.0",
+
+  "stack_order": [
+    "background",
+    "sketch",
+    "shoes",
+    "socks",
+    "short",
+    "skin",
+    "gloves",
+    "jersey",
+    "helmet",
+    "glasses",
+    "screen",
+    "hairs"
+  ],
+
+  "layers": {
+    "background": {
+      "label": "Fond",
+      "file": "Background.tiff",
+      "colorize": true,
+      "base_color": "#ffffff",
+      "opacity": 1.0
+    },
+    "sketch": {
+      "label": "Contours & ombre",
+      "file": "sketch.tiff",
+      "colorize": true,
+      "base_color": "#2d3130",
+      "opacity": 1.0,
+      "note": "Gris anthracite très foncé pour un rendu technique et moderne."
+    },
+    "shoes": {
+      "label": "Chaussures",
+      "file": "shoes.tiff",
+      "colorize": true,
+      "base_color": "#ffffff",
+      "opacity": 1.0,
+      "note": "Blanches, le standard de la performance chez les pros."
+    },
+    "socks": {
+      "label": "Chaussettes",
+      "file": "socks.tiff",
+      "colorize": true,
+      "base_color": "#ffffff",
+      "opacity": 1.0,
+      "note": "Chaussettes blanches hautes."
+    },
+    "short": {
+      "label": "Cuissard",
+      "file": "short.tiff",
+      "colorize": true,
+      "base_color": "#0b1d33",
+      "opacity": 1.0,
+      "note": "Le bleu marine très sombre/noir caractéristique du bas de la tenue Visma."
+    },
+    "skin": {
+      "label": "Peau",
+      "file": "skin.tiff",
+      "colorize": true,
+      "base_color": "#f7d2b7",
+      "opacity": 1.0,
+      "note": "Teint clair."
+    },
+    "gloves": {
+      "label": "Gants",
+      "file": "gloves.tiff",
+      "colorize": true,
+      "base_color": "#ffcc00",
+      "opacity": 1.0,
+      "note": "Mitaines jaunes assorties au maillot."
+    },
+    "jersey": {
+      "label": "Maillot",
+      "file": "jersey.tiff",
+      "colorize": true,
+      "base_color": "#ffcc00",
+      "opacity": 1.0,
+      "note": "Le jaune vif 'Visma' iconique."
+    },
+    "helmet": {
+      "label": "Casque",
+      "file": "helmet.tiff",
+      "colorize": true,
+      "base_color": "#ffffff",
+      "opacity": 1.0,
+      "note": "Le casque blanc (Giro) souvent porté par l'équipe, ou à passer en jaune."
+    },
+    "glasses": {
+      "label": "Monture lunettes",
+      "file": "glasses.tiff",
+      "colorize": true,
+      "base_color": "#0b1d33",
+      "opacity": 1.0,
+      "note": "Rappel du bleu marine ou noir de la monture Oakley."
+    },
+    "screen": {
+      "label": "Écran lunettes",
+      "file": "screen.tiff",
+      "colorize": true,
+      "base_color": "#cc1155",
+      "opacity": 0.85,
+      "note": "Écran iridescent type Prizm Road (reflets roses/rouges)."
+    },
+    "hairs": {
+      "label": "Cheveux",
+      "file": "hairs.tiff",
+      "colorize": true,
+      "base_color": "#e0c59e",
+      "opacity": 1.0,
+      "note": "Blond clair scandinave."
+    }
+  }
+}

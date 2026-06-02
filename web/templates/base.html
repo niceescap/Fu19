@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="fr" class="h-full bg-slate-50 text-slate-900">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=1400, user-scalable=yes">
+    <title>{% block title %}FJC - Espace Bâtisseur{% endblock %}</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    {% block extra_head %}{% endblock %}
+</head>
+<body class="flex h-full flex-col font-sans antialiased overflow-x-auto">
+
+    <!-- ================================================================
+         HEADER — Minimal, logo seul (cliquable → accueil)
+    ================================================================ -->
+    <header class="border-b border-slate-200 bg-white sticky top-0 z-40">
+        <div class="mx-auto flex h-16 w-[1400px] items-center justify-between px-6">
+            <!-- Logo + Nom du site (cliquable → accueil) -->
+            <a href="/fiches" class="flex items-center gap-3">
+                <div class="flex h-8 w-8 items-center justify-center rounded-md bg-indigo-600 text-white font-bold">
+                    FJC
+                </div>
+                <span class="text-xl font-black tracking-tight text-slate-900">
+                    FuturJuniorCyclists
+                </span>
+                <span class="hidden sm:inline-flex rounded-md bg-slate-100 px-2 py-0.5 text-xs font-medium text-slate-600">
+                    Platform
+                </span>
+            </a>
+
+            <!-- Partie droite : emplacement login (futur) -->
+            <div class="flex items-center gap-4">
+                <div class="text-sm font-medium text-slate-500 hidden sm:block">
+                    {{ current_user_email | default("admin@fjc.fr") }}
+                </div>
+                <div class="h-8 w-8 rounded-full bg-slate-200 border border-slate-300"></div>
+            </div>
+        </div>
+    </header>
+
+    <!-- ================================================================
+         CORPS DE PAGE (contenu seul, sans sidebar)
+    ================================================================ -->
+    <div class="mx-auto flex w-[1400px] flex-1 px-6 py-8 overflow-hidden" style="min-height: 0;">
+        <!-- Contenu principal -->
+        <main class="w-full overflow-hidden flex flex-col" style="min-height: 0;">
+            {% block content %}
+            <div class="rounded-lg border-2 border-dashed border-slate-300 bg-white p-12 text-center">
+                <svg class="mx-auto h-12 w-12 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 002-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
+                </svg>
+                <h3 class="mt-2 text-sm font-semibold text-slate-900">Zone de Contenu Centrale</h3>
+                <p class="mt-1 text-sm text-slate-500">Le template enfant (fiches_list ou fiche_athlete) n'a pas été injecté correctement.</p>
+            </div>
+            {% endblock %}
+        </main>
+    </div>
+
+</body>
+</html>

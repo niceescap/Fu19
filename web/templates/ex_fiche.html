@@ -1,0 +1,652 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>{{ athlete.prenom }} {{ athlete.nom }} — FJC Rider Card</title>
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@300;400;700;900&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+
+<style>
+* { margin:0; padding:0; box-sizing:border-box; }
+
+/* =============================================
+   PAGE — scroll wrapper pour une vue initiale
+   calée sur la moitié de la photo
+============================================= */
+
+body {
+    background: #dde2e8;
+    font-family: 'Barlow Condensed', Arial, sans-serif;
+    /* plus besoin de flex ici, le wrapper s'en charge */
+    margin: 0;
+    height: 100vh;
+    overflow: hidden;        /* on évite un double scroll */
+}
+
+/* Wrapper qui autorise le défilement horizontal (et vertical si besoin) */
+.scroll-wrapper {
+    width: 100vw;
+    height: 100vh;
+    overflow-x: auto;
+    overflow-y: auto;
+    display: flex;
+    align-items: center;      /* centrer verticalement la carte */
+    justify-content: flex-start; /* la carte part du bord gauche */
+    scroll-behavior: smooth;   /* défilement fluide quand l'utilisateur scrolle */
+}
+
+/* =============================================
+   CARTE PRINCIPALE — 1800×900 fixe
+============================================= */
+
+.fiche {
+    width: 1800px;
+    height: 900px;
+    background: #ffffff;
+    border-radius: 28px;
+    padding: 28px;
+    display: grid;
+    grid-template-columns: 320px 1fr;
+    gap: 28px;
+    box-shadow:
+        0 20px 60px rgba(0,0,0,0.12),
+        0 4px 12px rgba(0,0,0,0.06);
+    position: relative;
+    flex-shrink: 0;           /* empêche la carte de rétrécir */
+    margin: 0;                /* pas de centrage automatique */
+}
+
+/* watermark FJC discret */
+.fiche::after {
+    content: 'FJC';
+    position: absolute;
+    bottom: 32px;
+    left: 50%;
+    transform: translateX(-50%);
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 4px;
+    color: #e5e7eb;
+    pointer-events: none;
+}
+
+/* =============================================
+   COLONNE GAUCHE — PHOTO
+============================================= */
+
+.photo-col {
+    height: 100%;
+    border-radius: 20px;
+    overflow: hidden;
+    background: #f0f2f4;
+    border: 1px solid #e5e7eb;
+    position: relative;
+}
+
+.photo-col img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+}
+
+/* avatar par défaut si pas de photo */
+.photo-placeholder {
+    width: 100%;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 12px;
+    color: #9ca3af;
+}
+
+.photo-placeholder svg {
+    width: 80px;
+    height: 80px;
+    opacity: 0.3;
+}
+
+.photo-placeholder span {
+    font-size: 12px;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    opacity: 0.4;
+}
+
+/* badge photo */
+.photo-badge {
+        position: absolute;
+        bottom: 14px;
+        left: 50%;
+        transform: translateX(-50%);
+        background: rgba(255,255,255,0.92);
+        border: 1px solid #d1fae5;
+        border-radius: 999px;
+        padding: 5px 12px;
+        font-size: 11px;
+        font-weight: 700;
+        color: #065f46;
+        letter-spacing: 0.5px;
+        white-space: nowrap;
+        backdrop-filter: blur(4px);
+    }
+
+    .photo-badge.pending {
+        border-color: #e5e7eb;
+        color: #9ca3af;
+        background: rgba(255,255,255,0.80);
+    }
+
+/* =============================================
+   COLONNE DROITE — CONTENU
+============================================= */
+
+.content-col {
+    display: grid;
+    grid-template-rows: auto auto 1fr auto;
+    gap: 18px;
+    height: 100%;
+    min-height: 0;
+}
+
+/* =============================================
+   HEADER 1 — NOM + DRAPEAU + JUNIOR
+============================================= */
+
+.header-top {
+    display: grid;
+    grid-template-columns: 1fr auto auto;
+    align-items: center;
+    gap: 16px;
+}
+
+.name-block {
+    display: flex;
+    align-items: baseline;
+    gap: 14px;
+    overflow: hidden;
+}
+
+.prenom {
+    font-size: 48px;
+    font-weight: 300;
+    text-transform: uppercase;
+    color: #6b7280;
+    letter-spacing: 2px;
+    white-space: nowrap;
+}
+
+.nom {
+    font-size: 68px;
+    font-weight: 900;
+    text-transform: uppercase;
+    color: #111827;
+    letter-spacing: 1px;
+    white-space: nowrap;
+    line-height: 1;
+}
+
+.flag-box {
+    width: 110px;
+    height: 80px;
+    border-radius: 16px;
+    border: 1px solid #e5e7eb;
+    background: #fafafa;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 10px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+    flex-shrink: 0;
+}
+
+.flag-box img {
+    max-width: 100%;
+    max-height: 52px;
+    object-fit: contain;
+    border-radius: 3px;
+}
+
+.junior-box {
+    width: 170px;
+    height: 80px;
+    border-radius: 16px;
+    border: 1px solid #e5e7eb;
+    background: #111827;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-direction: column;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+    flex-shrink: 0;
+}
+
+.junior-label {
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 3px;
+    text-transform: uppercase;
+    color: #6b7280;
+}
+
+.junior-year {
+    font-size: 36px;
+    font-weight: 900;
+    color: #ffffff;
+    line-height: 1;
+}
+
+/* =============================================
+   HEADER 2 — META PILLS
+============================================= */
+
+.header-bottom {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    flex-wrap: wrap;
+}
+
+.pill {
+    background: #f8f9fa;
+    border: 1px solid #e8e9eb;
+    border-radius: 999px;
+    padding: 8px 18px;
+    font-size: 14px;
+    font-weight: 500;
+    color: #374151;
+    font-family: 'DM Mono', monospace;
+    white-space: nowrap;
+    box-shadow: 0 1px 4px rgba(0,0,0,0.04);
+}
+
+.pill.certified {
+    background: #f0fdf4;
+    border-color: #86efac;
+    color: #166534;
+}
+
+/* =============================================
+   ZONE CENTRALE — HÉLICE + INFOS
+============================================= */
+
+.center-zone {
+    display: grid;
+    grid-template-columns: 1fr 260px;
+    gap: 20px;
+    min-height: 0;
+}
+
+/* HÉLICE */
+
+.metrics-zone {
+    border-radius: 22px;
+    border: 1px solid #e5e7eb;
+    background: #fafafa;
+    padding: 12px 18px 0 18px;
+    display: flex;
+    flex-direction: column;
+    min-height: 0;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.04);
+}
+
+.metrics-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 8px;
+    flex-shrink: 0;
+}
+
+.metrics-title {
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    color: #9ca3af;
+}
+
+.certified-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    background: #f0fdf4;
+    border: 1px solid #86efac;
+    border-radius: 999px;
+    padding: 3px 10px;
+    font-size: 10px;
+    font-weight: 700;
+    color: #166534;
+    letter-spacing: 0.5px;
+}
+
+.metrics-content {
+    flex: 1;
+    border-radius: 16px;
+    background: #ffffff;
+    border: 1px solid #f0f0f0;
+    overflow: hidden;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 0;
+}
+
+.metrics-content svg,
+.metrics-content img {
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+}
+
+/* placeholder hélice vide */
+.metrics-placeholder {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    color: #d1d5db;
+    height: 100%;
+}
+
+.metrics-placeholder span {
+    font-size: 11px;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+}
+
+/* COLONNE INFOS DROITE — slot dynamique */
+
+.infos-col {
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+    min-height: 0;
+    overflow: hidden;
+}
+
+.info-card {
+    background: #ffffff;
+    border-radius: 18px;
+    border: 1px solid #e5e7eb;
+    padding: 16px 18px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    flex-shrink: 0;
+}
+
+.info-card.grow {
+    flex: 1;
+    min-height: 0;
+}
+
+.info-label {
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+    color: #9ca3af;
+    margin-bottom: 6px;
+}
+
+.info-value {
+    font-size: 22px;
+    font-weight: 700;
+    color: #111827;
+    line-height: 1.2;
+}
+
+.info-value.large {
+    font-size: 28px;
+}
+
+.info-value.small {
+    font-size: 16px;
+    font-weight: 500;
+    color: #374151;
+}
+
+/* Palmarès scrollable */
+.palmares-list {
+    flex: 1;
+    overflow-y: auto;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    padding-right: 2px;
+    min-height: 0;
+}
+
+.palmares-list::-webkit-scrollbar { width: 3px; }
+.palmares-list::-webkit-scrollbar-track { background: transparent; }
+.palmares-list::-webkit-scrollbar-thumb { background: #e5e7eb; border-radius: 3px; }
+
+.palmares-item {
+    display: flex;
+    align-items: flex-start;
+    gap: 8px;
+    padding: 7px 0;
+    border-bottom: 1px solid #f3f4f6;
+    flex-shrink: 0;
+}
+
+.palmares-item:last-child { border-bottom: none; }
+
+.p-rank {
+    font-size: 15px;
+    font-weight: 900;
+    color: #111827;
+    min-width: 32px;
+    font-family: 'DM Mono', monospace;
+}
+
+.p-detail { flex: 1; }
+
+.p-race {
+    font-size: 13px;
+    font-weight: 600;
+    color: #1f2937;
+    line-height: 1.3;
+}
+
+.p-date {
+    font-size: 11px;
+    color: #9ca3af;
+    font-family: 'DM Mono', monospace;
+    margin-top: 1px;
+}
+
+.p-cert {
+    font-size: 9px;
+    font-weight: 700;
+    color: #166534;
+    background: #f0fdf4;
+    border: 1px solid #86efac;
+    border-radius: 999px;
+    padding: 2px 6px;
+    white-space: nowrap;
+    align-self: center;
+    flex-shrink: 0;
+}
+
+/* =============================================
+   FOOTER — MÉDIAS (slot dynamique)
+============================================= */
+
+.footer-medias {
+    display: none;
+    align-items: center;
+    gap: 12px;
+    overflow: hidden;
+}
+
+.footer-medias.visible {
+    display: flex;
+}
+
+.media-link {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    background: #f8f9fa;
+    border: 1px solid #e8e9eb;
+    border-radius: 999px;
+    padding: 8px 16px;
+    text-decoration: none;
+    color: #374151;
+    font-size: 13px;
+    font-weight: 600;
+    white-space: nowrap;
+    transition: background 0.15s, border-color 0.15s;
+    flex-shrink: 0;
+}
+
+.media-link:hover {
+    background: #f0f2f5;
+    border-color: #d1d5db;
+}
+
+.media-link .icon { font-size: 16px; }
+
+</style>
+</head>
+<body>
+
+<!-- Conteneur scrollable horizontal, aligné à gauche -->
+<div class="scroll-wrapper">
+    <div class="fiche">
+
+<!-- ================================
+              GAUCHE — AVATAR
+        ================================= -->
+        <div class="photo-col">
+            <img src="{{ athlete.avatar_url }}"
+                 alt="{{ athlete.prenom }} {{ athlete.nom }}"
+                 class="avatar{% if athlete.avatar_ready %} avatar-ready{% else %} avatar-pending{% endif %}">
+            {% if athlete.avatar_ready %}
+                <div class="photo-badge">🎨 Avatar personnalisé</div>
+            {% else %}
+                <div class="photo-badge pending">⏳ Avatar en attente</div>
+            {% endif %}
+        </div>
+
+        <!-- ================================
+             DROITE — CONTENU
+        ================================= -->
+        <div class="content-col">
+
+            <!-- HEADER 1 : NOM + DRAPEAU + JUNIOR -->
+            <div class="header-top">
+                <div class="name-block">
+                    <div class="prenom">{{ athlete.prenom }}</div>
+                    <div class="nom">{{ athlete.nom }}</div>
+                </div>
+                <div class="flag-box">
+                    <img src="https://flagcdn.com/w80/{{ athlete.nationalite | lower }}.png"
+                         alt="{{ athlete.nationalite }}">
+                </div>
+                <div class="junior-box">
+                    <div class="junior-label">Junior</div>
+                    <div class="junior-year">{{ athlete.junior_horizon }}</div>
+                </div>
+            </div>
+
+            <!-- HEADER 2 : META PILLS -->
+            <div class="header-bottom">
+                {{ meta_pills_html | safe }}
+            </div>
+
+<!-- CENTRE : HÉLICE + INFOS COLONNE DROITE -->
+<div class="center-zone">
+    <!-- HÉLICE -->
+    <div class="metrics-zone">
+        <div class="metrics-header">
+            <div class="metrics-title">Rider Metrics</div>
+            {% if athlete.metrics_certified %}
+                <div class="certified-badge">✅ Certified Datas</div>
+            {% endif %}
+        </div>
+        <div class="metrics-content">
+            {% if athlete.metrics_url %}
+                <img src="{{ athlete.metrics_url }}" alt="Rider Metrics" class="metrics-img">
+            {% else %}
+                <div class="metrics-placeholder">
+                    <svg width="60" height="60" viewBox="0 0 24 24" fill="none"
+                         stroke="currentColor" stroke-width="1">
+                        <path stroke-linecap="round" stroke-linejoin="round"
+                            d="M3 13.125C3 12.504 3.504 12 4.125 12h2.25c.621 0 1.125.504 1.125 1.125v6.75C7.5 20.496 6.996 21 6.375 21h-2.25A1.125 1.125 0 013 19.875v-6.75zM9.75 8.625c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125v11.25c0 .621-.504 1.125-1.125 1.125h-2.25a1.125 1.125 0 01-1.125-1.125V8.625zM16.5 4.125c0-.621.504-1.125 1.125-1.125h2.25C20.496 3 21 3.504 21 4.125v15.75c0 .621-.504 1.125-1.125 1.125h-2.25a1.125 1.125 0 01-1.125-1.125V4.125z"/>
+                    </svg>
+                    <span>Données à importer</span>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- INFOS COLONNE -->
+    <div class="infos-col">
+        {{ infos_col_html | safe }}
+    </div>
+</div>
+
+            <!-- FOOTER MÉDIAS -->
+            <div class="footer-medias" id="footer-medias">
+                {{ medias_html | safe }}
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+// Active le footer médias si du contenu est présent
+document.addEventListener("DOMContentLoaded", () => {
+    const footer = document.getElementById("footer-medias");
+    if (footer && footer.children.length > 0) {
+        footer.classList.add("visible");
+    }
+
+    // ----- CALAGE DE LA VUE INITIALE SUR LA MOITIÉ DE LA PHOTO -----
+    const wrapper = document.querySelector('.scroll-wrapper');
+    const photoCol = document.querySelector('.photo-col');
+
+    if (wrapper && photoCol) {
+        // On attend un court instant que les styles soient appliqués
+        // et que les dimensions soient stables (surtout si une image est chargée).
+        const setInitialScroll = () => {
+            // Récupère la position du bord gauche de la colonne photo
+            // par rapport au wrapper (en tenant compte des paddings / marges éventuels)
+            const wrapperRect = wrapper.getBoundingClientRect();
+            const photoRect = photoCol.getBoundingClientRect();
+
+            // Milieu horizontal de la colonne photo
+            const photoMidX = photoRect.left + photoRect.width / 2;
+
+            // Position du bord gauche du wrapper dans la page
+            const wrapperLeft = wrapperRect.left;
+
+            // Décalage nécessaire pour que le milieu de la photo
+            // corresponde au bord gauche de la fenêtre visible
+            const targetScrollLeft = photoMidX - wrapperLeft;
+
+            // Applique le scroll (sans animation brusque)
+            wrapper.scrollLeft = targetScrollLeft;
+        };
+
+        // Exécute après un petit délai pour laisser le navigateur peaufiner la mise en page
+        setTimeout(setInitialScroll, 100);
+
+        // Recalcule si la fenêtre est redimensionnée (optionnel)
+        window.addEventListener('resize', setInitialScroll);
+    }
+});
+</script>
+
+</body>
+</html>

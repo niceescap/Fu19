@@ -1,0 +1,118 @@
+{
+  "_comment": "Avatar FJC — Configuration Colorisation (Thème : Bart Simpson)",
+  "_version": "1.0",
+
+  "stack_order": [
+    "background",
+    "sketch",
+    "shoes",
+    "socks",
+    "short",
+    "skin",
+    "gloves",
+    "jersey",
+    "helmet",
+    "glasses",
+    "screen",
+    "hairs"
+  ],
+
+  "layers": {
+    "background": {
+      "label": "Fond",
+      "file": "Background.tiff",
+      "colorize": true,
+      "base_color": "#ffffff",
+      "opacity": 1.0,
+      "note": "Fond blanc standard."
+    },
+    "sketch": {
+      "label": "Contours & ombre",
+      "file": "sketch.tiff",
+      "colorize": true,
+      "base_color": "#000000",
+      "opacity": 1.0,
+      "note": "Noir pur pour respecter le style 'cartoon' / Matt Groening."
+    },
+    "shoes": {
+      "label": "Chaussures",
+      "file": "shoes.tiff",
+      "colorize": true,
+      "base_color": "#0053cc",
+      "opacity": 1.0,
+      "note": "Bleu comme ses baskets."
+    },
+    "socks": {
+      "label": "Chaussettes",
+      "file": "socks.tiff",
+      "colorize": true,
+      "base_color": "#ffffff",
+      "opacity": 1.0,
+      "note": "Blanches."
+    },
+    "short": {
+      "label": "Cuissard",
+      "file": "short.tiff",
+      "colorize": true,
+      "base_color": "#0053cc",
+      "opacity": 1.0,
+      "note": "Bleu identique au short d'origine."
+    },
+    "skin": {
+      "label": "Peau",
+      "file": "skin.tiff",
+      "colorize": true,
+      "base_color": "#ffd100",
+      "opacity": 1.0,
+      "note": "Le fameux Jaune Simpson officiel."
+    },
+    "gloves": {
+      "label": "Gants",
+      "file": "gloves.tiff",
+      "colorize": true,
+      "base_color": "#ffd100",
+      "opacity": 1.0,
+      "note": "Ici configuré en jaune pour simuler des mains nues (mitaines), ou à passer en rouge/bleu selon tes préférences."
+    },
+    "jersey": {
+      "label": "Maillot",
+      "file": "jersey.tiff",
+      "colorize": true,
+      "base_color": "#f14124",
+      "opacity": 1.0,
+      "note": "Rouge/Orange vif de son t-shirt."
+    },
+    "helmet": {
+      "label": "Casque",
+      "file": "helmet.tiff",
+      "colorize": true,
+      "base_color": "#0053cc",
+      "opacity": 1.0,
+      "note": "Rappel de bleu pour équilibrer la panoplie du cycliste."
+    },
+    "glasses": {
+      "label": "Monture lunettes",
+      "file": "glasses.tiff",
+      "colorize": true,
+      "base_color": "#ffffff",
+      "opacity": 1.0,
+      "note": "Monture blanche pour rappeler ses grands yeux ronds."
+    },
+    "screen": {
+      "label": "Écran lunettes",
+      "file": "screen.tiff",
+      "colorize": true,
+      "base_color": "#1a1a2e",
+      "opacity": 0.40,
+      "note": "Opacité baissée pour laisser deviner le regard en dessous."
+    },
+    "hairs": {
+      "label": "Cheveux",
+      "file": "hairs.tiff",
+      "colorize": true,
+      "base_color": "#ffd100",
+      "opacity": 1.0,
+      "note": "Jaune, puisque ses cheveux font corps avec sa tête."
+    }
+  }
+}

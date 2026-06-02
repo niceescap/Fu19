@@ -1,0 +1,317 @@
+{% extends "base.html" %}
+{% set hide_sidebar = True %}
+
+{% block title %}Avatar Assistant{% endblock %}
+
+{% block extra_head %}
+<style>
+    .avatar-layout {
+        display: grid;
+        grid-template-columns: 360px 1fr;
+        gap: 24px;
+        max-width: 1024px;
+        margin: 0 auto;
+        height: auto;
+        max-height: 80vh;
+        overflow: hidden;
+    }
+    .avatar-panel, .chat-panel {
+        background: #fff;
+        border: 1px solid #e5e7eb;
+        border-radius: 16px;
+        overflow: hidden;
+        display: flex;
+        flex-direction: column;
+        height: 100%;
+        min-height: 0;
+    }
+    .avatar-header {
+        padding: 18px 20px;
+        border-bottom: 1px solid #e5e7eb;
+        flex-shrink: 0;
+    }
+    .avatar-header h2 {
+        font-size: 1.1rem;
+        font-weight: 700;
+        color: #0f172a;
+    }
+    .avatar-preview {
+        padding: 24px;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        background: #f8fafc;
+        flex: 1;
+        min-height: 0;
+    }
+    .avatar-preview img {
+        width: 100%;
+        max-width: 280px;
+        height: auto;
+        border-radius: 8px;
+        border: 1px solid #e5e7eb;
+    }
+    .avatar-meta {
+        padding: 0 20px 16px;
+        text-align: center;
+        font-size: 0.75rem;
+        color: #64748b;
+        font-family: monospace;
+        word-break: break-all;
+        flex-shrink: 0;
+    }
+    .avatar-actions {
+        padding: 0 20px 20px;
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+        flex-shrink: 0;
+    }
+    .btn {
+        border: none;
+        border-radius: 10px;
+        padding: 12px 18px;
+        cursor: pointer;
+        font-weight: 600;
+        font-size: 0.9rem;
+        text-align: center;
+        transition: background 0.2s ease;
+    }
+    .btn-save {
+        background: #2563eb;
+        color: white;
+    }
+    .btn-save:hover { background: #1d4ed8; }
+    .btn-reset {
+        background: #f1f5f9;
+        border: 1px solid #cbd5e1;
+        color: #475569;
+    }
+    .btn-reset:hover { background: #e2e8f0; }
+
+    .chat-panel {
+        display: flex;
+        flex-direction: column;
+    }
+    .chat-header {
+        padding: 18px 20px;
+        border-bottom: 1px solid #e5e7eb;
+        flex-shrink: 0;
+    }
+    .chat-header h2 {
+        font-size: 1.1rem;
+        font-weight: 700;
+        color: #0f172a;
+    }
+    .chat-header p {
+        font-size: 0.85rem;
+        color: #64748b;
+        margin-top: 4px;
+    }
+    .chat-body {
+        flex: 1;
+        overflow-y: auto;
+        min-height: 0;
+        padding: 20px;
+        display: flex;
+        flex-direction: column;
+        gap: 12px;
+        background: white;
+    }
+    .message {
+        max-width: 75%;
+        padding: 12px 16px;
+        border-radius: 18px;
+        line-height: 1.5;
+        font-size: 0.95rem;
+    }
+    .message.user {
+        align-self: flex-end;
+        background: #2563eb;
+        color: white;
+        border-bottom-right-radius: 6px;
+    }
+    .message.bot {
+        align-self: flex-start;
+        background: #f1f5f9;
+        color: #0f172a;
+        border-bottom-left-radius: 6px;
+    }
+    .message.system {
+        align-self: center;
+        background: #f8fafc;
+        color: #64748b;
+        font-size: 0.85rem;
+    }
+    .chat-input {
+        border-bottom: 1px solid #e5e7eb;
+        padding: 16px;
+        display: flex;
+        gap: 10px;
+        flex-shrink: 0;
+    }
+    .chat-input input {
+        flex: 1;
+        border: 1px solid #cbd5e1;
+        border-radius: 10px;
+        padding: 12px;
+        font-size: 0.95rem;
+    }
+    .chat-input input:focus {
+        outline: none;
+        border-color: #2563eb;
+    }
+    .chat-input .btn-send {
+        background: #2563eb;
+        color: white;
+        border: none;
+        border-radius: 10px;
+        padding: 12px 20px;
+        font-weight: 600;
+        cursor: pointer;
+    }
+    .chat-input .btn-send:hover { background: #1d4ed8; }
+    .chat-input .btn-send:disabled {
+        background: #cbd5e1;
+        cursor: not-allowed;
+    }
+
+    @media (max-width: 960px) {
+        .avatar-layout {
+            grid-template-columns: 1fr;
+            max-height: none;
+        }
+        .message {
+            max-width: 90%;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="avatar-layout">
+    <!-- Panneau gauche : Avatar -->
+    <div class="avatar-panel">
+        <div class="avatar-header">
+            <h2>🎨 Avatar Preview</h2>
+        </div>
+        <div class="avatar-preview" id="avatar-preview">
+            <img src="{{ avatar_preview_url }}" alt="Avatar">
+        </div>
+        <div class="avatar-meta">
+            {% if athlete_id %}
+            <span>{{ athlete_id }}</span>
+            {% else %}
+            <span>Aucun athlète sélectionné</span>
+            {% endif %}
+        </div>
+        <div class="avatar-actions">
+            <button class="btn btn-reset" onclick="resetChat()">↺ Reset Avatar</button>
+            <button class="btn btn-save" onclick="finalizeAvatar()">✓ Save Avatar</button>
+        </div>
+    </div>
+
+    <!-- Panneau droit : Chatbot -->
+    <div class="chat-panel">
+        <div class="chat-header">
+            <h2>🤖 Avatar Assistant</h2>
+            <p>Décrivez les couleurs de l'avatar (ex: "maillot rouge, casque jaune").</p>
+        </div>
+        <!-- Zone de saisie placée AVANT l'historique -->
+        <div class="chat-input">
+            <input id="user-input" type="text" autocomplete="off" placeholder="Ex: Bart Simpson">
+            <button id="send-btn" class="btn-send" onclick="sendMessage()">Envoyer</button>
+        </div>
+        <!-- Historique des messages (scrollable) -->
+        <div id="messages" class="chat-body">
+            <div class="message bot">
+                Bonjour 👋<br><br>
+                Je suis votre assistant avatar. Décrivez les couleurs que vous souhaitez, ou citez un personnage.
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    const ATHLETE_ID = "{{ athlete_id }}";
+    const input = document.getElementById("user-input");
+    const messages = document.getElementById("messages");
+    const sendBtn = document.getElementById("send-btn");
+
+    input.addEventListener("keydown", e => {
+        if (e.key === "Enter") sendMessage();
+    });
+
+    function addMsg(text, role) {
+        const div = document.createElement("div");
+        div.className = "message " + role;
+        div.innerHTML = text.replace(/\n/g, "<br>");
+        messages.appendChild(div);
+        messages.scrollTop = messages.scrollHeight;
+    }
+
+    async function sendMessage() {
+        const text = input.value.trim();
+        if (!text) return;
+        addMsg(text, "user");
+        input.value = "";
+        sendBtn.disabled = true;
+        try {
+            const res = await fetch("/avatar/chat", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ message: text })
+            });
+            const data = await res.json();
+            addMsg(data.message, "bot");
+            if (data.avatar_url) {
+                document.getElementById("avatar-preview").innerHTML =
+                    `<img src="${data.avatar_url}?t=${Date.now()}" alt="avatar">`;
+            }
+        } catch (err) {
+            addMsg("Erreur de connexion.", "system");
+        }
+        sendBtn.disabled = false;
+        input.focus();
+    }
+
+    async function resetChat() {
+        await fetch("/avatar/reset", { method: "POST" });
+        messages.innerHTML = '';
+        addMsg("Avatar réinitialisé aux couleurs par défaut.", "system");
+        document.getElementById("avatar-preview").innerHTML =
+            `<img src="/avatar/default?t=${Date.now()}" alt="avatar">`;
+        input.focus();
+    }
+
+    async function finalizeAvatar() {
+        addMsg("Finalisation en cours...", "system");
+        try {
+            const res = await fetch("/avatar/finalize", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ athlete_id: ATHLETE_ID })
+            });
+            const data = await res.json();
+            if (data.status === "SUCCESS") {
+                addMsg("✅ " + data.message, "system");
+                setTimeout(() => {
+                    window.location.href = data.redirect_url;
+                }, 1500);
+            } else {
+                addMsg("❌ " + data.message, "system");
+            }
+        } catch (err) {
+            addMsg("Erreur lors de la finalisation.", "system");
+        }
+    }
+
+    window.onload = () => {
+        const img = document.querySelector("#avatar-preview img");
+        if (img) {
+            const src = img.src;
+            img.src = src + (src.includes('?') ? '&' : '?') + 't=' + Date.now();
+        }
+    };
+</script>
+{% endblock %}

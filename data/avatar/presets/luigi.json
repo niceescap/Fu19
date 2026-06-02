@@ -1,0 +1,116 @@
+{
+  "_comment": "Avatar FJC — Configuration Colorisation (Thème : Luigi)",
+  "_version": "1.0",
+
+  "stack_order": [
+    "background",
+    "sketch",
+    "shoes",
+    "socks",
+    "short",
+    "skin",
+    "gloves",
+    "jersey",
+    "helmet",
+    "glasses",
+    "screen",
+    "hairs"
+  ],
+
+  "layers": {
+    "background": {
+      "label": "Fond",
+      "file": "Background.tiff",
+      "colorize": true,
+      "base_color": "#ffffff",
+      "opacity": 1.0
+    },
+    "sketch": {
+      "label": "Contours & ombre",
+      "file": "sketch.tiff",
+      "colorize": true,
+      "base_color": "#111111",
+      "opacity": 1.0,
+      "note": "Contours très sombres et nets pour le style jeu vidéo rétro / Nintendo."
+    },
+    "shoes": {
+      "label": "Chaussures",
+      "file": "shoes.tiff",
+      "colorize": true,
+      "base_color": "#5c3a21",
+      "opacity": 1.0,
+      "note": "Le marron caractéristique de ses grosses bottes de plombier."
+    },
+    "socks": {
+      "label": "Chaussettes",
+      "file": "socks.tiff",
+      "colorize": true,
+      "base_color": "#ffffff",
+      "opacity": 1.0
+    },
+    "short": {
+      "label": "Cuissard",
+      "file": "short.tiff",
+      "colorize": true,
+      "base_color": "#002fbe",
+      "opacity": 1.0,
+      "note": "Bleu denim soutenu pour rappeler sa célèbre salopette."
+    },
+    "skin": {
+      "label": "Peau",
+      "file": "skin.tiff",
+      "colorize": true,
+      "base_color": "#ffd8b3",
+      "opacity": 1.0,
+      "note": "Teinte chair de personnage de jeu vidéo."
+    },
+    "gloves": {
+      "label": "Gants",
+      "file": "gloves.tiff",
+      "colorize": true,
+      "base_color": "#ffffff",
+      "opacity": 1.0,
+      "note": "Blancs en coton, l'un des détails incontournables des frères plombiers."
+    },
+    "jersey": {
+      "label": "Maillot",
+      "file": "jersey.tiff",
+      "colorize": true,
+      "base_color": "#00b22d",
+      "opacity": 1.0,
+      "note": "Le vert Luigi officiel, vif et bien distinct du vert de Link."
+    },
+    "helmet": {
+      "label": "Casque",
+      "file": "helmet.tiff",
+      "colorize": true,
+      "base_color": "#00b22d",
+      "opacity": 1.0,
+      "note": "Rappel du vert de sa casquette."
+    },
+    "glasses": {
+      "label": "Monture lunettes",
+      "file": "glasses.tiff",
+      "colorize": true,
+      "base_color": "#221815",
+      "opacity": 1.0,
+      "note": "Brun très foncé/noir pour simuler le contour des yeux ou une grosse monture "
+    },
+    "screen": {
+      "label": "Écran lunettes",
+      "file": "screen.tiff",
+      "colorize": true,
+      "base_color": "#0099ff",
+      "opacity": 0.50,
+      "note": "Bleu clair translucide pour rappeler la couleur de ses yeux ronds."
+    },
+    "hairs": {
+      "label": "Cheveux",
+      "file": "hairs.tiff",
+      "colorize": true,
+      "base_color": "#221815",
+      "opacity": 1.0,
+      "note": "Brun très foncé (presque noir), identique à sa moustache."
+    }
+  }
+}

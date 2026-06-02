@@ -1,0 +1,126 @@
+{% extends "base.html" %}
+{% block title %}Nouvelle Fiche — FJC{% endblock %}
+
+{% block content %}
+
+<!-- Flash messages -->
+{% with messages = get_flashed_messages(with_categories=true) %}
+  {% if messages %}
+    <div class="mb-6 space-y-2">
+      {% for category, message in messages %}
+        <div class="rounded-md px-4 py-3 text-sm font-medium border
+          {% if category == 'success' %}bg-green-50 text-green-800 border-green-200
+          {% elif category == 'warning' %}bg-yellow-50 text-yellow-800 border-yellow-200
+          {% else %}bg-red-50 text-red-800 border-red-200{% endif %}">
+          {{ message }}
+        </div>
+      {% endfor %}
+    </div>
+  {% endif %}
+{% endwith %}
+
+<div class="max-w-lg mx-auto">
+
+  <div class="rounded-xl border border-slate-200 bg-white shadow-sm overflow-hidden">
+
+    <!-- En-tête -->
+    <div class="border-b border-slate-100 px-6 py-5">
+      <h2 class="text-lg font-black uppercase tracking-tight text-slate-900">Nouvelle fiche coureur</h2>
+      <p class="text-sm text-slate-400 mt-1">Ces 4 informations sont définitives et ne pourront plus être modifiées.</p>
+    </div>
+
+    <form method="POST" action="/creer" class="px-6 py-6 space-y-5">
+
+      <!-- Prénom -->
+      <div>
+        <label class="block text-xs font-bold uppercase tracking-widest text-slate-400 mb-1.5">
+          Prénom <span class="text-red-400">*</span>
+        </label>
+        <input type="text" name="prenom" required autofocus
+               value="{{ form_data.prenom if form_data else '' }}"
+               placeholder="Julian"
+               class="w-full rounded-lg border border-slate-200 px-4 py-2.5 text-sm shadow-sm focus:border-indigo-400 focus:outline-none focus:ring-1 focus:ring-indigo-400">
+      </div>
+
+      <!-- Nom -->
+      <div>
+        <label class="block text-xs font-bold uppercase tracking-widest text-slate-400 mb-1.5">
+          Nom <span class="text-red-400">*</span>
+        </label>
+        <input type="text" name="nom" required
+               value="{{ form_data.nom if form_data else '' }}"
+               placeholder="DUPONT"
+               class="w-full rounded-lg border border-slate-200 px-4 py-2.5 text-sm shadow-sm focus:border-indigo-400 focus:outline-none focus:ring-1 focus:ring-indigo-400">
+      </div>
+
+      <!-- Date de naissance -->
+      <div>
+        <label class="block text-xs font-bold uppercase tracking-widest text-slate-400 mb-1.5">
+          Date de naissance <span class="text-red-400">*</span>
+        </label>
+        <input type="date" name="date_naissance" required
+               value="{{ form_data.date_naissance if form_data else '' }}"
+               class="w-full rounded-lg border border-slate-200 px-4 py-2.5 text-sm shadow-sm focus:border-indigo-400 focus:outline-none focus:ring-1 focus:ring-indigo-400">
+      </div>
+
+      <!-- Pays -->
+      <div>
+        <label class="block text-xs font-bold uppercase tracking-widest text-slate-400 mb-1.5">
+          Pays <span class="text-red-400">*</span>
+        </label>
+        <select name="nationalite" required
+                class="w-full rounded-lg border border-slate-200 px-4 py-2.5 text-sm shadow-sm focus:border-indigo-400 focus:outline-none focus:ring-1 focus:ring-indigo-400">
+          <option value="">— Sélectionner —</option>
+          <option value="FR" {% if form_data and form_data.nationalite == 'FR' %}selected{% endif %}>🇫🇷 France</option>
+          <option value="BE" {% if form_data and form_data.nationalite == 'BE' %}selected{% endif %}>🇧🇪 Belgique</option>
+          <option value="ES" {% if form_data and form_data.nationalite == 'ES' %}selected{% endif %}>🇪🇸 Espagne</option>
+          <option value="IT" {% if form_data and form_data.nationalite == 'IT' %}selected{% endif %}>🇮🇹 Italie</option>
+          <option value="DE" {% if form_data and form_data.nationalite == 'DE' %}selected{% endif %}>🇩🇪 Allemagne</option>
+          <option value="NL" {% if form_data and form_data.nationalite == 'NL' %}selected{% endif %}>🇳🇱 Pays-Bas</option>
+          <option value="GB" {% if form_data and form_data.nationalite == 'GB' %}selected{% endif %}>🇬🇧 Grande-Bretagne</option>
+          <option value="PT" {% if form_data and form_data.nationalite == 'PT' %}selected{% endif %}>🇵🇹 Portugal</option>
+          <option value="DK" {% if form_data and form_data.nationalite == 'DK' %}selected{% endif %}>🇩🇰 Danemark</option>
+          <option value="NO" {% if form_data and form_data.nationalite == 'NO' %}selected{% endif %}>🇳🇴 Norvège</option>
+          <option value="SE" {% if form_data and form_data.nationalite == 'SE' %}selected{% endif %}>🇸🇪 Suède</option>
+          <option value="CH" {% if form_data and form_data.nationalite == 'CH' %}selected{% endif %}>🇨🇭 Suisse</option>
+          <option value="AT" {% if form_data and form_data.nationalite == 'AT' %}selected{% endif %}>🇦🇹 Autriche</option>
+          <option value="PL" {% if form_data and form_data.nationalite == 'PL' %}selected{% endif %}>🇵🇱 Pologne</option>
+          <option value="CZ" {% if form_data and form_data.nationalite == 'CZ' %}selected{% endif %}>🇨🇿 République Tchèque</option>
+          <option value="SK" {% if form_data and form_data.nationalite == 'SK' %}selected{% endif %}>🇸🇰 Slovaquie</option>
+          <option value="SI" {% if form_data and form_data.nationalite == 'SI' %}selected{% endif %}>🇸🇮 Slovénie</option>
+          <option value="HR" {% if form_data and form_data.nationalite == 'HR' %}selected{% endif %}>🇭🇷 Croatie</option>
+          <option value="RS" {% if form_data and form_data.nationalite == 'RS' %}selected{% endif %}>🇷🇸 Serbie</option>
+          <option value="RO" {% if form_data and form_data.nationalite == 'RO' %}selected{% endif %}>🇷🇴 Roumanie</option>
+          <option value="US" {% if form_data and form_data.nationalite == 'US' %}selected{% endif %}>🇺🇸 États-Unis</option>
+          <option value="CA" {% if form_data and form_data.nationalite == 'CA' %}selected{% endif %}>🇨🇦 Canada</option>
+          <option value="AU" {% if form_data and form_data.nationalite == 'AU' %}selected{% endif %}>🇦🇺 Australie</option>
+          <option value="JP" {% if form_data and form_data.nationalite == 'JP' %}selected{% endif %}>🇯🇵 Japon</option>
+          <option value="CN" {% if form_data and form_data.nationalite == 'CN' %}selected{% endif %}>🇨🇳 Chine</option>
+          <option value="KZ" {% if form_data and form_data.nationalite == 'KZ' %}selected{% endif %}>🇰🇿 Kazakhstan</option>
+          <option value="CO" {% if form_data and form_data.nationalite == 'CO' %}selected{% endif %}>🇨🇴 Colombie</option>
+          <option value="EC" {% if form_data and form_data.nationalite == 'EC' %}selected{% endif %}>🇪🇨 Équateur</option>
+          <option value="MA" {% if form_data and form_data.nationalite == 'MA' %}selected{% endif %}>🇲🇦 Maroc</option>
+          <option value="ZA" {% if form_data and form_data.nationalite == 'ZA' %}selected{% endif %}>🇿🇦 Afrique du Sud</option>
+          <option value="ER" {% if form_data and form_data.nationalite == 'ER' %}selected{% endif %}>🇪🇷 Érythrée</option>
+        </select>
+      </div>
+
+      <!-- Bouton -->
+      <div class="pt-2">
+        <button type="submit"
+                class="w-full rounded-lg bg-indigo-600 px-5 py-3 text-sm font-bold text-white shadow-sm hover:bg-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-600 focus:ring-offset-2 transition-colors uppercase tracking-wide">
+          Créer la fiche
+        </button>
+      </div>
+
+    </form>
+  </div>
+
+  <!-- Note informative -->
+  <p class="text-center text-xs text-slate-400 mt-4">
+    Après création, vous pourrez enrichir la fiche avec la photo, le club, les données de performance et le palmarès.
+  </p>
+
+</div>
+
+{% endblock %}
