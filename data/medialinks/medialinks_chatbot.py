@@ -11,7 +11,7 @@ from data.models import Athlete
 medialinks_bp = Blueprint("medialinks_bp", __name__, template_folder="templates")
 
 # Configuration Groq
-GROQ_API_KEY = os.environ.get("GROQ_SNIPPET_ENHANCER_KEY", "")
+GROQ_API_KEY = os.environ.get("GROQ_API_KEY", "")
 GROQ_MODEL = "llama-3.3-70b-versatile"
 GROQ_URL = "https://api.groq.com/openai/v1/chat/completions"
 
@@ -20,8 +20,8 @@ TRACKING_PARAMS = ['utm_source', 'utm_medium', 'utm_campaign', 'utm_term', 'utm_
 
 # Prompt système par défaut (contient le mot "JSON" pour satisfaire l'API)
 DEFAULT_PROMPT = """Tu es l'assistant média d'une application de fiches athlètes.
-Ton rôle est d'analyser le message pour y détecter des mentions de réseaux sociaux (Instagram, TikTok, YouTube, Strava) ou des sites web.
-
+Ton rôle est d'analyser le message pour y détecter des mentions de réseaux sociaux (Instagram, TikTok, YouTube, Strava) ou des sites web de presse ou de commerce.
+Si tu détectes un site non conforme, du contenu offensant ou de la suspicion de nudité, tu refuses le lien.
 Réponds impérativement au format JSON avec deux clés :
 1. "bot_message": Un message court et sympa dans la langue détectée.
 2. "extracted_medias": Un tableau d'objets contenant {"platform": "...", "type": "...", "value": "...", "label": "..."}.
