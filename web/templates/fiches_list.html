@@ -1,5 +1,4 @@
 {% extends "base.html" %}
-{% load static %}
 
 {% block title %}Fiches Coureurs — FJC{% endblock %}
 
@@ -118,7 +117,7 @@
 
         <!-- Image statique au format avatar -->
         <div class="w-full aspect-[3/4] bg-indigo-100 overflow-hidden">
-          <img src="{% static 'create_static.png' %}"
+          <img src="{{ url_for('static', filename='create_static.png') }}"
                alt="Créer une fiche"
                class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300">
         </div>
