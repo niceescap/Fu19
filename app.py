@@ -13,7 +13,7 @@ from flask import (
 from core.config import (
     SECRET_KEY, TEMPLATES_DIR, STATIC_DIR,
     ALLOWED_PHOTO_EXTENSIONS, ALLOWED_FIT_EXTENSIONS,
-    PROFILES_DIR, DEBUG
+    PROFILES_DIR, DEBUG, ADMIN_EMAIL
 )
 from data.database import SessionLocal
 from data.models import Athlete
