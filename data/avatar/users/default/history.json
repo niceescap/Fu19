@@ -1,42 +1,42 @@
 [
   {
     "role": "user",
-    "content": "Lunettes violet,plus de bleu sur le maillot et chassettes rouges"
+    "content": "Casque short et gant doivent être vert foncé mais couleur naturelle"
   },
   {
     "role": "assistant",
-    "content": "{\n  \"message\": \"L'avatar a maintenant un look encore plus personnalisé !\",\n  \"changes\": {\n    \"glasses\": \"#7a288a\",\n    \"jersey\": \"#add8e6\",\n    \"socks\": \"#ff0000\"\n  }\n}"
+    "content": "{\n  \"message\": \"Le casque, le short et les gants sont maintenant d'un vert foncé naturel !\",\n  \"changes\": {\n    \"helmet\": \"#2f4f2f\",\n    \"short\": \"#2f4f2f\",\n    \"gloves\": \"#2f4f2f\"\n  }\n}"
   },
   {
     "role": "user",
-    "content": "Casque violet"
+    "content": "Les chaussettes doivent être de la même couleur que le maillot"
   },
   {
     "role": "assistant",
-    "content": "{\n  \"message\": \"Le casque de l'avatar est maintenant violet !\",\n  \"changes\": {\n    \"helmet\": \"#7a288a\"\n  }\n}"
+    "content": "{\n  \"message\": \"Les chaussettes sont maintenant de la même couleur que le maillot !\",\n  \"changes\": {\n    \"socks\": \"#6495ed\"\n  }\n}"
   },
   {
     "role": "user",
-    "content": "Cheveux blonds plus réaliste"
+    "content": "Les chaussures noires mais pas complètement noir absolu un noir naturel"
   },
   {
     "role": "assistant",
-    "content": "{\n  \"message\": \"Les cheveux de l'avatar sont maintenant plus blonds et réalistes !\",\n  \"changes\": {\n    \"hairs\": \"#fccd00\"\n  }\n}"
+    "content": "{\n  \"message\": \"Les chaussures sont maintenant d'un noir naturel !\",\n  \"changes\": {\n    \"shoes\": \"#333333\"\n  }\n}"
   },
   {
     "role": "user",
-    "content": "Chaussures blanches et écran lunette iridium"
+    "content": "L'écran des lunettes doit avoir des reflets bleu clair"
   },
   {
     "role": "assistant",
-    "content": "{\n  \"message\": \"Les chaussures et l'écran de lunette de l'avatar ont été mis à jour !\",\n  \"changes\": {\n    \"shoes\": \"#ffffff\",\n    \"screen\": \"#3d3d3d\"\n  }\n}"
+    "content": "{\n  \"message\": \"L'écran des lunettes a maintenant des reflets bleu clair !\",\n  \"changes\": {\n    \"screen\": \"#add8e6\"\n  }\n}"
   },
   {
     "role": "user",
-    "content": "Écran des lunettes orange foncé"
+    "content": "La paire de gants rouge bordeaux sombre mais jolie et ce sera bon"
   },
   {
     "role": "assistant",
-    "content": "{\n  \"message\": \"L'écran des lunettes de l'avatar est maintenant orange foncé !\",\n  \"changes\": {\n    \"screen\": \"#ff9900\"\n  }\n}"
+    "content": "{\n  \"message\": \"La paire de gants est maintenant d'un rouge bordeaux sombre et élégant !\",\n  \"changes\": {\n    \"gloves\": \"#8b0a1a\"\n  }\n}"
   }
 ]

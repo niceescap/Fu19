@@ -32,70 +32,70 @@
       "label": "Chaussures",
       "file": "shoes.tiff",
       "colorize": true,
-      "base_color": "#ffffff",
+      "base_color": "#333333",
       "opacity": 1.0
     },
     "socks": {
       "label": "Chaussettes",
       "file": "socks.tiff",
       "colorize": true,
-      "base_color": "#ff0000",
+      "base_color": "#6495ed",
       "opacity": 1.0
     },
     "short": {
       "label": "Cuissard",
       "file": "short.tiff",
       "colorize": true,
-      "base_color": "#000000",
+      "base_color": "#2f4f2f",
       "opacity": 1.0
     },
     "skin": {
       "label": "Peau",
       "file": "skin.tiff",
       "colorize": true,
-      "base_color": "#ffd7be",
+      "base_color": "#ffc2c7",
       "opacity": 1.0
     },
     "gloves": {
       "label": "Gants",
       "file": "gloves.tiff",
       "colorize": true,
-      "base_color": "#000000",
+      "base_color": "#8b0a1a",
       "opacity": 1.0
     },
     "jersey": {
       "label": "Maillot",
       "file": "jersey.tiff",
       "colorize": true,
-      "base_color": "#add8e6",
+      "base_color": "#6495ed",
       "opacity": 1.0
     },
     "helmet": {
       "label": "Casque",
       "file": "helmet.tiff",
       "colorize": true,
-      "base_color": "#7a288a",
+      "base_color": "#2f4f2f",
       "opacity": 1.0
     },
     "glasses": {
       "label": "Monture lunettes",
       "file": "glasses.tiff",
       "colorize": true,
-      "base_color": "#7a288a",
+      "base_color": "#00ffff",
       "opacity": 1.0
     },
     "screen": {
       "label": "Écran lunettes",
       "file": "screen.tiff",
       "colorize": true,
-      "base_color": "#ff9900",
+      "base_color": "#add8e6",
       "opacity": 1.0
     },
     "hairs": {
       "label": "Cheveux",
       "file": "hairs.tiff",
       "colorize": true,
-      "base_color": "#fccd00",
+      "base_color": "#964b00",
       "opacity": 1.0
     }
   }

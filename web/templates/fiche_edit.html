@@ -4,33 +4,42 @@
 
 {% block content %}
 
-<!-- Flash messages -->
+<!-- ============================================================
+     FLASH MESSAGES — éphémères 3s
+============================================================ -->
 {% with messages = get_flashed_messages(with_categories=true) %}
   {% if messages %}
-    <div class="mb-6 space-y-2">
+    <div id="flash-container" class="mb-6 space-y-2">
       {% for category, message in messages %}
-        <div class="rounded-md px-4 py-3 text-sm font-medium border
+        <div class="flash-msg rounded-md px-4 py-3 text-sm font-medium border flex items-start justify-between gap-3
             {% if category == 'success' %}bg-green-50 text-green-800 border-green-200
             {% elif category == 'warning' %}bg-yellow-50 text-yellow-800 border-yellow-200
             {% else %}bg-red-50 text-red-800 border-red-200{% endif %}">
-          {{ message }}
+          <span>{{ message }}</span>
+          <button onclick="this.closest('.flash-msg').remove()"
+                  class="shrink-0 opacity-40 hover:opacity-80 transition-opacity text-base leading-none mt-0.5">✕</button>
         </div>
       {% endfor %}
     </div>
   {% endif %}
 {% endwith %}
 
-<!-- En-tête de page -->
-<div class="mb-6 flex items-center justify-between">
-  <div>
-    <h1 class="text-2xl font-black uppercase tracking-tight text-slate-900">
-      {{ athlete.prenom }} <span class="text-slate-400 font-light">{{ athlete.nom }}</span>
-    </h1>
-    <p class="text-sm text-slate-400 font-mono mt-0.5">{{ athlete.id }}</p>
-  </div>
+<!-- ============================================================
+     EN-TÊTE — Nom + ID cliquable (lien vers fiche, bordure bleue)
+============================================================ -->
+<div class="mb-6">
   <a href="/fiche/{{ athlete.id }}"
-     class="flex items-center gap-2 rounded-md border border-slate-200 bg-white px-4 py-2 text-sm font-semibold text-slate-600 shadow-sm hover:bg-slate-50 transition-colors">
-    👁 Voir la fiche
+     class="flex items-center justify-between rounded-xl border-2 border-indigo-400 bg-indigo-50 px-6 py-4
+            hover:bg-indigo-100 hover:border-indigo-500 transition-colors group">
+    <div>
+      <h1 class="text-2xl font-black uppercase tracking-tight text-slate-900 group-hover:text-indigo-700 transition-colors">
+        {{ athlete.prenom }} <span class="text-slate-400 font-light">{{ athlete.nom }}</span>
+      </h1>
+      <p class="text-xs text-indigo-400 font-mono mt-0.5">{{ athlete.id }}</p>
+    </div>
+    <span class="text-indigo-400 text-sm font-semibold group-hover:text-indigo-600 transition-colors">
+      👁 Voir la fiche →
+    </span>
   </a>
 </div>
 
@@ -39,22 +48,19 @@
 ============================================================ -->
 <div class="mb-4 rounded-xl border border-slate-200 bg-white shadow-sm overflow-hidden">
 
-  <button onclick="toggle('bloc-avatar')"
+  <button onclick="toggleBloc('avatar')"
           class="w-full flex items-center justify-between px-6 py-4 hover:bg-slate-50 transition-colors">
     <div class="flex items-center gap-3">
       <span class="text-xl">🎨</span>
       <div class="text-left">
         <div class="text-sm font-bold text-slate-900">Avatar</div>
         <div class="text-xs text-slate-400 mt-0.5">
-          {% if athlete.photo_status == 'AVATAR' %}
-            🎨 Avatar personnalisé
-          {% else %}
-            ⏳ Avatar en attente — gris par défaut
-          {% endif %}
+          {% if athlete.photo_status == 'AVATAR' %}🎨 Avatar personnalisé
+          {% else %}⏳ Avatar en attente — gris par défaut{% endif %}
         </div>
       </div>
     </div>
-    <span class="text-slate-300 text-lg chevron" id="chevron-avatar">▸</span>
+    <span class="text-slate-300 text-lg transition-transform duration-200" id="chevron-avatar">▸</span>
   </button>
 
   <div id="bloc-avatar" class="hidden border-t border-slate-100 px-6 py-5">
@@ -88,7 +94,7 @@
 ============================================================ -->
 <div class="mb-4 rounded-xl border border-slate-200 bg-white shadow-sm overflow-hidden">
 
-  <button onclick="toggle('bloc-identite')"
+  <button onclick="toggleBloc('identite')"
           class="w-full flex items-center justify-between px-6 py-4 hover:bg-slate-50 transition-colors">
     <div class="flex items-center gap-3">
       <span class="text-xl">👤</span>
@@ -101,32 +107,29 @@
         </div>
       </div>
     </div>
-    <span class="text-slate-300 text-lg chevron" id="chevron-identite">▸</span>
+    <span class="text-slate-300 text-lg transition-transform duration-200" id="chevron-identite">▸</span>
   </button>
 
   <div id="bloc-identite" class="hidden border-t border-slate-100 px-6 py-5">
-    <form method="POST" action="/fiche/{{ athlete.id }}/update/identite" class="space-y-4">
+    <form method="POST" action="/fiche/{{ athlete.id }}/update/identite"
+          class="space-y-4" data-bloc="identite">
 
       <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-
         <div>
           <label class="block text-xs font-bold uppercase tracking-widest text-slate-400 mb-1">Prénom</label>
           <input type="text" name="prenom" value="{{ athlete.prenom }}"
                  class="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm focus:border-indigo-400 focus:outline-none focus:ring-1 focus:ring-indigo-400">
         </div>
-
         <div>
           <label class="block text-xs font-bold uppercase tracking-widest text-slate-400 mb-1">Nom</label>
           <input type="text" name="nom" value="{{ athlete.nom }}"
                  class="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm focus:border-indigo-400 focus:outline-none focus:ring-1 focus:ring-indigo-400">
         </div>
-
         <div>
           <label class="block text-xs font-bold uppercase tracking-widest text-slate-400 mb-1">Date de naissance</label>
           <input type="date" name="date_naissance" value="{{ athlete.date_naissance }}"
                  class="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm focus:border-indigo-400 focus:outline-none focus:ring-1 focus:ring-indigo-400">
         </div>
-
         <div>
           <label class="block text-xs font-bold uppercase tracking-widest text-slate-400 mb-1">Sexe</label>
           <select name="sexe"
@@ -135,46 +138,36 @@
             <option value="F" {% if athlete.sexe == 'F' %}selected{% endif %}>Féminin</option>
           </select>
         </div>
-
         <div>
           <label class="block text-xs font-bold uppercase tracking-widest text-slate-400 mb-1">Nationalité</label>
           <input type="text" name="nationalite" value="{{ athlete.nationalite }}" maxlength="2"
                  placeholder="FR"
                  class="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm uppercase focus:border-indigo-400 focus:outline-none focus:ring-1 focus:ring-indigo-400">
         </div>
-
         <div>
           <label class="block text-xs font-bold uppercase tracking-widest text-slate-400 mb-1">Fédération</label>
-          <input type="text" name="federation"
-                 value="{{ athlete.uci_id_data.get('federation', '') }}"
+          <input type="text" name="federation" value="{{ athlete.uci_id_data.get('federation', '') }}"
                  placeholder="FFC"
                  class="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm focus:border-indigo-400 focus:outline-none focus:ring-1 focus:ring-indigo-400">
         </div>
-
         <div>
           <label class="block text-xs font-bold uppercase tracking-widest text-slate-400 mb-1">Club</label>
-          <input type="text" name="club"
-                 value="{{ athlete.uci_id_data.get('club', '') }}"
+          <input type="text" name="club" value="{{ athlete.uci_id_data.get('club', '') }}"
                  placeholder="VC La Pomme"
                  class="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm focus:border-indigo-400 focus:outline-none focus:ring-1 focus:ring-indigo-400">
         </div>
-
         <div>
           <label class="block text-xs font-bold uppercase tracking-widest text-slate-400 mb-1">Ville</label>
-          <input type="text" name="ville"
-                 value="{{ athlete.uci_id_data.get('ville', '') }}"
+          <input type="text" name="ville" value="{{ athlete.uci_id_data.get('ville', '') }}"
                  placeholder="Marseille"
                  class="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm focus:border-indigo-400 focus:outline-none focus:ring-1 focus:ring-indigo-400">
         </div>
-
         <div class="sm:col-span-2">
           <label class="block text-xs font-bold uppercase tracking-widest text-slate-400 mb-1">Numéro UCI</label>
-          <input type="text" name="uci_number"
-                 value="{{ athlete.uci_id_data.get('number', '') }}"
+          <input type="text" name="uci_number" value="{{ athlete.uci_id_data.get('number', '') }}"
                  placeholder="FR-12345678901"
                  class="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm font-mono focus:border-indigo-400 focus:outline-none focus:ring-1 focus:ring-indigo-400">
         </div>
-
       </div>
 
       <div class="flex justify-end">
@@ -193,7 +186,7 @@
 ============================================================ -->
 <div class="mb-4 rounded-xl border border-slate-200 bg-white shadow-sm overflow-hidden">
 
-  <button onclick="toggle('bloc-metrics')"
+  <button onclick="toggleBloc('metrics')"
           class="w-full flex items-center justify-between px-6 py-4 hover:bg-slate-50 transition-colors">
     <div class="flex items-center gap-3">
       <span class="text-xl">🌀</span>
@@ -211,13 +204,14 @@
         </div>
       </div>
     </div>
-    <span class="text-slate-300 text-lg chevron" id="chevron-metrics">▸</span>
+    <span class="text-slate-300 text-lg transition-transform duration-200" id="chevron-metrics">▸</span>
   </button>
 
   <div id="bloc-metrics" class="hidden border-t border-slate-100 px-6 py-5 space-y-6">
 
     <!-- Poids -->
-    <form method="POST" action="/fiche/{{ athlete.id }}/update/poids" class="space-y-3">
+    <form method="POST" action="/fiche/{{ athlete.id }}/update/poids"
+          class="space-y-3" data-bloc="metrics">
       <p class="text-xs font-bold uppercase tracking-widest text-slate-400">Poids (obligatoire)</p>
       <div class="flex items-center gap-3">
         <input type="number" name="poids" min="20" max="120" step="0.1"
@@ -234,7 +228,7 @@
 
     <hr class="border-slate-100">
 
-    <!-- ── Sessions .fit importées ── -->
+    <!-- Sessions .fit importées -->
     {% set fit_files = athlete.donnees_performance.get('derniers_fichiers_fit', []) %}
     {% if fit_files %}
       <div class="space-y-2">
@@ -246,12 +240,11 @@
           <div class="flex items-center gap-3 rounded-lg border border-slate-100 bg-slate-50 px-4 py-3">
             <span class="text-base">📄</span>
             <span class="flex-1 text-sm font-mono text-slate-700 truncate">{{ fname }}</span>
-            <!-- Suppression fichier .fit -->
             <form method="POST" action="/fiche/{{ athlete.id }}/fit/delete/{{ fname | urlencode }}"
+                  data-bloc="metrics"
                   onsubmit="return confirm('Supprimer {{ fname }} ? L\'hélice sera recalculée.')">
               <button type="submit"
-                      class="rounded-md border border-red-100 bg-red-50 px-2 py-1 text-xs font-semibold text-red-400 hover:bg-red-100 hover:text-red-600 transition-colors"
-                      title="Supprimer ce fichier .fit">
+                      class="rounded-md border border-red-100 bg-red-50 px-2 py-1 text-xs font-semibold text-red-400 hover:bg-red-100 hover:text-red-600 transition-colors">
                 🗑
               </button>
             </form>
@@ -261,12 +254,10 @@
       <hr class="border-slate-100">
     {% endif %}
 
-    <!-- Import .fit (multi-fichiers) -->
+    <!-- Import .fit -->
     <form method="POST" action="/fiche/{{ athlete.id }}/upload/fit"
-          enctype="multipart/form-data" class="space-y-3">
-      <p class="text-xs font-bold uppercase tracking-widest text-slate-400">
-        Importer des fichiers .fit
-      </p>
+          enctype="multipart/form-data" class="space-y-3" data-bloc="metrics">
+      <p class="text-xs font-bold uppercase tracking-widest text-slate-400">Importer des fichiers .fit</p>
       <p class="text-xs text-slate-400">
         Fichiers exportés depuis ton compteur (Garmin, Wahoo, Bryton…)<br>
         Plusieurs fichiers acceptés — l'hélice sera calculée sur la moyenne de toutes les sessions.
@@ -285,30 +276,38 @@
 
     <hr class="border-slate-100">
 
-    <!-- Profil manuel -->
-    <form method="POST" action="/fiche/{{ athlete.id }}/update/profil" class="space-y-3">
-      <p class="text-xs font-bold uppercase tracking-widest text-slate-400">
-        Profil manuel
-        <span class="ml-2 rounded-full bg-slate-100 border border-slate-200 px-2 py-0.5 text-slate-500 normal-case font-semibold tracking-normal text-xs">hélice non certifiée</span>
-      </p>
-      <p class="text-xs text-slate-400">Pour les coureurs sans capteur de données</p>
-      <div class="flex gap-3 flex-wrap">
-        {% for profil in ['Grimpeur', 'Rouleur', 'Sprinter', 'Puncheur', 'Polyvalent'] %}
-          <label class="flex items-center gap-2 cursor-pointer">
-            <input type="radio" name="profil_manuel" value="{{ profil }}"
-                   {% if athlete.donnees_performance.get('profil_manuel') == profil %}checked{% endif %}
-                   class="accent-indigo-600">
-            <span class="text-sm font-semibold text-slate-700">{{ profil }}</span>
-          </label>
-        {% endfor %}
+    <!-- Profil manuel — GRISÉ -->
+    <div class="relative">
+      <!-- Overlay grisé -->
+      <div class="absolute inset-0 bg-slate-50/80 backdrop-blur-[1px] rounded-lg z-10 flex flex-col items-center justify-center gap-2">
+        <span class="text-2xl">🚧</span>
+        <span class="text-xs font-bold text-slate-400 uppercase tracking-widest">En cours de développement</span>
       </div>
-      <div class="flex justify-end">
-        <button type="submit"
-                class="rounded-md bg-slate-700 px-5 py-2 text-sm font-semibold text-white shadow-sm hover:bg-slate-600 transition-colors">
-          Sauvegarder le profil
-        </button>
+      <!-- Contenu désactivé en dessous -->
+      <div class="opacity-40 pointer-events-none space-y-3">
+        <p class="text-xs font-bold uppercase tracking-widest text-slate-400">
+          Profil manuel
+          <span class="ml-2 rounded-full bg-slate-100 border border-slate-200 px-2 py-0.5 text-slate-500 normal-case font-semibold tracking-normal text-xs">hélice non certifiée</span>
+        </p>
+        <p class="text-xs text-slate-400">Pour les coureurs sans capteur de données</p>
+        <div class="flex gap-3 flex-wrap">
+          {% for profil in ['Grimpeur', 'Rouleur', 'Sprinter', 'Puncheur', 'Polyvalent'] %}
+            <label class="flex items-center gap-2">
+              <input type="radio" name="profil_manuel_disabled" value="{{ profil }}"
+                     {% if athlete.donnees_performance.get('profil_manuel') == profil %}checked{% endif %}
+                     disabled>
+              <span class="text-sm font-semibold text-slate-700">{{ profil }}</span>
+            </label>
+          {% endfor %}
+        </div>
+        <div class="flex justify-end">
+          <button type="button" disabled
+                  class="rounded-md bg-slate-700 px-5 py-2 text-sm font-semibold text-white shadow-sm opacity-50 cursor-not-allowed">
+            Sauvegarder le profil
+          </button>
+        </div>
       </div>
-    </form>
+    </div>
 
   </div>
 
@@ -319,7 +318,7 @@
 ============================================================ -->
 <div class="mb-4 rounded-xl border border-slate-200 bg-white shadow-sm overflow-hidden">
 
-  <button onclick="toggle('bloc-palmares')"
+  <button onclick="toggleBloc('palmares')"
           class="w-full flex items-center justify-between px-6 py-4 hover:bg-slate-50 transition-colors">
     <div class="flex items-center gap-3">
       <span class="text-xl">🏅</span>
@@ -333,7 +332,7 @@
         </div>
       </div>
     </div>
-    <span class="text-slate-300 text-lg chevron" id="chevron-palmares">▸</span>
+    <span class="text-slate-300 text-lg transition-transform duration-200" id="chevron-palmares">▸</span>
   </button>
 
   <div id="bloc-palmares" class="hidden border-t border-slate-100 px-6 py-5 space-y-5">
@@ -352,12 +351,11 @@
             {% else %}
               <span class="text-xs text-slate-300 border border-slate-200 rounded-full px-2 py-0.5">non certifié</span>
             {% endif %}
-            <!-- Suppression ligne palmarès -->
             <form method="POST" action="/fiche/{{ athlete.id }}/palmares/delete/{{ loop.index0 }}"
+                  data-bloc="palmares"
                   onsubmit="return confirm('Supprimer ce résultat ?')">
               <button type="submit"
-                      class="ml-1 rounded-md border border-red-100 bg-red-50 px-2 py-1 text-xs font-semibold text-red-400 hover:bg-red-100 hover:text-red-600 transition-colors"
-                      title="Supprimer ce résultat">
+                      class="ml-1 rounded-md border border-red-100 bg-red-50 px-2 py-1 text-xs font-semibold text-red-400 hover:bg-red-100 hover:text-red-600 transition-colors">
                 🗑
               </button>
             </form>
@@ -367,7 +365,9 @@
       <hr class="border-slate-100">
     {% endif %}
 
-    <form method="POST" action="/fiche/{{ athlete.id }}/palmares/add" class="space-y-4">
+    <!-- Ajout résultat -->
+    <form method="POST" action="/fiche/{{ athlete.id }}/palmares/add"
+          class="space-y-4" data-bloc="palmares">
       <p class="text-xs font-bold uppercase tracking-widest text-slate-400">Ajouter un résultat</p>
       <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
         <div>
@@ -392,15 +392,21 @@
         </div>
       </div>
 
-      <div class="rounded-lg border border-dashed border-slate-200 bg-slate-50 p-4">
-        <p class="text-xs font-bold uppercase tracking-widest text-slate-400 mb-2">
-          Document de certification
-          <span class="ml-1 text-slate-300 normal-case font-normal tracking-normal">(optionnel)</span>
-        </p>
-        <p class="text-xs text-slate-400 mb-3">Photo classement imprimé, PDF results, capture d'écran officielle…</p>
-        <input type="file" name="cert_document" accept=".jpg,.jpeg,.png,.pdf"
-               class="block w-full text-sm text-slate-500 file:mr-3 file:rounded-full file:border-0 file:bg-slate-100 file:px-4 file:py-2 file:text-sm file:font-semibold file:text-slate-600 hover:file:bg-slate-200">
-        <p class="text-xs text-slate-300 mt-2">Agent de certification LLM — disponible prochainement</p>
+      <!-- Certification — GRISÉE -->
+      <div class="relative">
+        <div class="absolute inset-0 bg-slate-50/80 backdrop-blur-[1px] rounded-lg z-10 flex flex-col items-center justify-center gap-2">
+          <span class="text-xl">🚧</span>
+          <span class="text-xs font-bold text-slate-400 uppercase tracking-widest">Certification — En cours de développement</span>
+        </div>
+        <div class="opacity-40 pointer-events-none rounded-lg border border-dashed border-slate-200 bg-slate-50 p-4">
+          <p class="text-xs font-bold uppercase tracking-widest text-slate-400 mb-2">
+            Document de certification
+            <span class="ml-1 text-slate-300 normal-case font-normal tracking-normal">(optionnel)</span>
+          </p>
+          <p class="text-xs text-slate-400 mb-3">Photo classement imprimé, PDF results, capture d'écran officielle…</p>
+          <input type="file" name="certification_doc" accept="image/*,.pdf" disabled
+                 class="block w-full text-sm text-slate-400">
+        </div>
       </div>
 
       <div class="flex justify-end">
@@ -419,81 +425,187 @@
      BLOC 5 — MÉDIAS
 ============================================================ -->
 <div class="mb-4 rounded-xl border border-slate-200 bg-white shadow-sm overflow-hidden">
-  <button onclick="toggle('bloc-medias')"
+
+  <button onclick="toggleBloc('medias')"
           class="w-full flex items-center justify-between px-6 py-4 hover:bg-slate-50 transition-colors">
     <div class="flex items-center gap-3">
-      <span class="text-xl">📱</span>
+      <span class="text-xl">🔗</span>
       <div class="text-left">
-        <div class="text-sm font-bold text-slate-900">Médias & Liens</div>
+        <div class="text-sm font-bold text-slate-900">Liens médias</div>
         <div class="text-xs text-slate-400 mt-0.5">
-          {% set nb_links = athlete.medias.get('links', {}) | length %}
-          {% if nb_links == 0 %}Aucun lien enregistré
-          {% else %}{{ nb_links }} lien(s){% endif %}
+          {% set nb_medias = athlete.medias.get('links', {}) | length %}
+          {% if nb_medias == 0 %}Aucun lien enregistré
+          {% elif nb_medias == 1 %}1 lien
+          {% else %}{{ nb_medias }} liens{% endif %}
         </div>
       </div>
     </div>
-    <span class="text-slate-300 text-lg chevron" id="chevron-medias">▸</span>
+    <span class="text-slate-300 text-lg transition-transform duration-200" id="chevron-medias">▸</span>
   </button>
 
-  <div id="bloc-medias" class="hidden border-t border-slate-100 px-6 py-5 space-y-5">
-    <!-- Bouton pour ouvrir le chatbot -->
-    <div class="flex justify-end">
-      <a href="/medialinks/{{ athlete.id }}" target="_blank"
-         class="inline-flex items-center gap-2 rounded-md bg-indigo-600 px-5 py-2 text-sm font-semibold text-white shadow-sm hover:bg-indigo-500 transition-colors">
-        🤖 Ajouter / Organiser avec le chatbot
-      </a>
-    </div>
-
+  <div id="bloc-medias" class="hidden border-t border-slate-100 px-6 py-5 space-y-4">
+    <p class="text-xs text-slate-400">
+      Utilisez le chatbot médias pour ajouter et organiser vos liens.
+    </p>
+    <a href="/medialinks/?athlete_id={{ athlete.id }}" target="_blank"
+       class="inline-flex items-center gap-2 rounded-md bg-indigo-600 px-5 py-2 text-sm font-semibold text-white shadow-sm hover:bg-indigo-500 transition-colors">
+      🔗 Ouvrir le chatbot Médias
+    </a>
     {% set links = athlete.medias.get('links', {}) %}
     {% if links %}
-      <div class="space-y-2">
-        {% for key, data in links.items() %}
+      <div class="mt-4 space-y-2">
+        {% for key, item in links.items() %}
           <div class="flex items-center gap-3 rounded-lg border border-slate-100 bg-slate-50 px-4 py-3">
-            <span class="text-sm font-semibold text-slate-600 min-w-[100px]">{{ data.label or data.url }}</span>
-            <a href="{{ data.url }}" target="_blank" class="text-xs text-indigo-500 font-mono truncate hover:underline">{{ data.url }}</a>
-            <form method="POST" action="/fiche/{{ athlete.id }}/media/delete" class="ml-auto" onsubmit="return confirm('Supprimer ce lien ?')">
-                <input type="hidden" name="key" value="{{ key }}">
-                <button type="submit" class="text-slate-400 hover:text-red-500 transition-colors" title="Supprimer">✕</button>
+            <span class="text-base">🔗</span>
+            <div class="flex-1 min-w-0">
+              <div class="text-sm font-semibold text-slate-800 truncate">{{ item.get('label', key) }}</div>
+              <div class="text-xs text-slate-400 font-mono truncate">{{ item.get('url', '') }}</div>
+            </div>
+            <form method="POST" action="/fiche/{{ athlete.id }}/media/delete"
+                  data-bloc="medias">
+              <input type="hidden" name="key" value="{{ key }}">
+              <button type="submit"
+                      class="rounded-md border border-red-100 bg-red-50 px-2 py-1 text-xs font-semibold text-red-400 hover:bg-red-100 hover:text-red-600 transition-colors">
+                🗑
+              </button>
             </form>
           </div>
         {% endfor %}
       </div>
     {% endif %}
   </div>
+
+</div>
+
+<!-- ============================================================
+     BLOC 6 — DANGER ZONE
+============================================================ -->
+<div class="mb-4 rounded-xl border border-red-200 bg-white shadow-sm overflow-hidden">
+
+  <button onclick="toggleBloc('danger')"
+          class="w-full flex items-center justify-between px-6 py-4 hover:bg-red-50 transition-colors">
+    <div class="flex items-center gap-3">
+      <span class="text-xl">⚠️</span>
+      <div class="text-left">
+        <div class="text-sm font-bold text-red-600">Zone de danger</div>
+        <div class="text-xs text-red-300 mt-0.5">Actions irréversibles</div>
+      </div>
+    </div>
+    <span class="text-red-200 text-lg transition-transform duration-200" id="chevron-danger">▸</span>
+  </button>
+
+  <div id="bloc-danger" class="hidden border-t border-red-100 px-6 py-5">
+    <p class="text-sm text-slate-500 mb-4">
+      La suppression de la fiche est définitive. Toutes les données, fichiers .fit et l'avatar seront effacés.
+    </p>
+    <form method="POST" action="/fiche/{{ athlete.id }}/supprimer"
+          onsubmit="return confirm('⚠️ Supprimer définitivement la fiche de {{ athlete.prenom }} {{ athlete.nom }} ? Cette action est irréversible.')">
+      <button type="submit"
+              class="rounded-md border-2 border-red-400 bg-red-50 px-5 py-2 text-sm font-semibold text-red-600 hover:bg-red-100 hover:border-red-500 transition-colors">
+        🗑 Supprimer cette fiche
+      </button>
+    </form>
+  </div>
+
 </div>
 
 
 <!-- ============================================================
-     ZONE DANGER — Suppression
+     JS — Blocs persistants + Scroll conservé
 ============================================================ -->
-<div class="mt-8 rounded-xl border border-red-100 bg-red-50 px-6 py-5">
-  <p class="text-sm font-bold text-red-700 mb-1">Zone de danger</p>
-  <p class="text-xs text-red-400 mb-4">
-    Supprime définitivement la fiche et tous les fichiers associés. Action irréversible.
-  </p>
-  <form method="POST" action="/fiche/{{ athlete.id }}/supprimer"
-        onsubmit="return confirm('Supprimer définitivement la fiche de {{ athlete.prenom }} {{ athlete.nom }} ?')">
-    <button type="submit"
-            class="rounded-md bg-red-600 px-5 py-2 text-sm font-semibold text-white shadow-sm hover:bg-red-500 transition-colors">
-      🗑️ Supprimer cette fiche
-    </button>
-  </form>
-</div>
-
 <script>
-function toggle(id) {
-  const bloc = document.getElementById(id);
-  const key  = id.replace('bloc-', '');
-  const chev = document.getElementById('chevron-' + key);
-  const open = !bloc.classList.contains('hidden');
-  document.querySelectorAll('[id^="bloc-"]').forEach(b => b.classList.add('hidden'));
-  document.querySelectorAll('.chevron').forEach(c => c.textContent = '▸');
-  if (!open) {
-    bloc.classList.remove('hidden');
-    if (chev) chev.textContent = '▾';
+(function () {
+  const ATHLETE_ID   = "{{ athlete.id }}";
+  const STORAGE_KEY  = "fjc_blocs_" + ATHLETE_ID;
+  const SCROLL_KEY   = "fjc_scroll_" + ATHLETE_ID;
+  const FLASH_H      = 60; // hauteur estimée d'un flash message en px
+
+  // ── État des blocs ─────────────────────────────────────────────────────────
+  function loadState() {
+    try { return JSON.parse(sessionStorage.getItem(STORAGE_KEY)) || {}; }
+    catch { return {}; }
   }
-}
+
+  function saveState(state) {
+    sessionStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+  }
+
+  // ── Ouvrir / fermer un bloc ────────────────────────────────────────────────
+  window.toggleBloc = function (name) {
+    const bloc    = document.getElementById("bloc-" + name);
+    const chevron = document.getElementById("chevron-" + name);
+    const state   = loadState();
+
+    if (bloc.classList.contains("hidden")) {
+      bloc.classList.remove("hidden");
+      chevron.style.transform = "rotate(90deg)";
+      state[name] = true;
+    } else {
+      bloc.classList.add("hidden");
+      chevron.style.transform = "";
+      state[name] = false;
+    }
+    saveState(state);
+  };
+
+  // ── Restaurer l'état des blocs au chargement ───────────────────────────────
+  function restoreBlocs() {
+    const state = loadState();
+    for (const [name, open] of Object.entries(state)) {
+      if (!open) continue;
+      const bloc    = document.getElementById("bloc-" + name);
+      const chevron = document.getElementById("chevron-" + name);
+      if (bloc)    bloc.classList.remove("hidden");
+      if (chevron) chevron.style.transform = "rotate(90deg)";
+    }
+  }
+
+  // ── Scroll conservé ────────────────────────────────────────────────────────
+  function restoreScroll() {
+    const saved = sessionStorage.getItem(SCROLL_KEY);
+    if (saved === null) return;
+    sessionStorage.removeItem(SCROLL_KEY);
+
+    const target = parseInt(saved, 10);
+    // Compense la hauteur du flash si des messages sont présents
+    const flashContainer = document.getElementById("flash-container");
+    const flashH = flashContainer ? flashContainer.offsetHeight : 0;
+    const corrected = Math.max(0, target - flashH);
+
+    // Délai minimal pour que le DOM soit rendu
+    requestAnimationFrame(() => {
+      window.scrollTo({ top: corrected, behavior: "instant" });
+    });
+  }
+
+  // ── Intercepter les soumissions de formulaires ─────────────────────────────
+  function attachFormHandlers() {
+    document.querySelectorAll("form[data-bloc]").forEach(form => {
+      form.addEventListener("submit", function () {
+        // Sauvegarde scroll avant POST
+        sessionStorage.setItem(SCROLL_KEY, String(window.scrollY));
+      });
+    });
+  }
+
+  // ── Flash éphémères — disparition après 3s ─────────────────────────────────
+  function initFlashTimers() {
+    document.querySelectorAll(".flash-msg").forEach(function (el) {
+      setTimeout(function () {
+        el.style.transition = "opacity 0.5s ease";
+        el.style.opacity    = "0";
+        setTimeout(function () { el.remove(); }, 500);
+      }, 3000);
+    });
+  }
+
+  // ── Init ───────────────────────────────────────────────────────────────────
+  restoreBlocs();
+  restoreScroll();
+  attachFormHandlers();
+  initFlashTimers();
+
+})();
 </script>
 
 {% endblock %}
-
