@@ -167,11 +167,10 @@ def fiche_athlete(athlete_id):
                            current_user_email=session.get("user_email"),
                            editable=editable)
 
-
 @app.route("/fiche/<athlete_id>/edit")
 def fiche_edit(athlete_id):
-    """Page d'édition d'une fiche — réservée aux utilisateurs connectés."""
-    if not session.get("user_email"):
+    user_email = session.get("user_email")
+    if not user_email:
         flash("🔒 Connectez-vous pour accéder à l'édition.", "warning")
         return redirect(url_for("fiches_list"))
 
@@ -180,14 +179,22 @@ def fiche_edit(athlete_id):
         ath = get_athlete_or_404(db, athlete_id)
         if not ath:
             return redirect(url_for("fiches_list"))
+
+        # Vérification ownership
+        is_admin = user_email.strip().lower() in ADMIN_EMAILS
+        is_owner = any(o.email == user_email.strip().lower() for o in ath.owners)
+
+        if not is_admin and not is_owner:
+            flash("⛔ Vous n'êtes pas autorisé à éditer cette fiche.", "error")
+            return redirect(url_for("fiches_list"))
+
         athlete = athlete_to_dict(ath)
     finally:
         db.close()
 
     return render_template("fiche_edit.html",
                            athlete=athlete,
-                           current_user_email=session.get("user_email"))
-
+                           current_user_email=user_email)
 
 # ==============================================================================
 # ROUTES — AUTH
