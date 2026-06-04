@@ -2,6 +2,8 @@
 import os
 import sys
 from pathlib import Path
+from dotenv import load_dotenv
+load_dotenv()
 
 # Garantit que ~/fjc/ est dans sys.path quel que soit le répertoire d'exécution
 BASE_DIR = Path(__file__).resolve().parent.parent
