@@ -105,6 +105,58 @@
         </select>
       </div>
 
+      <!-- Bloc Engagement légal & RGPD -->
+      <div class="border-t border-slate-100 pt-4 space-y-4">
+        <h3 class="text-xs font-black uppercase tracking-wider text-slate-500">Engagement légal & RGPD</h3>
+
+        <div>
+          <label class="block text-xs font-bold uppercase tracking-widest text-slate-400 mb-1.5">
+            Votre qualité de déclarant <span class="text-red-400">*</span>
+          </label>
+          <select name="user_role" required
+                  class="w-full rounded-lg border border-slate-200 px-4 py-2.5 text-sm shadow-sm focus:border-indigo-400 focus:outline-none focus:ring-1 focus:ring-indigo-400">
+            <option value="" disabled {% if not form_data or not form_data.user_role %}selected{% endif %}>— Choisissez votre qualité —</option>
+            <option value="parent" {% if form_data and form_data.user_role == 'parent' %}selected{% endif %}>👨‍👦 Représentant légal (Parent)</option>
+            <option value="coach" {% if form_data and form_data.user_role == 'coach' %}selected{% endif %}>🚴‍♂️ Éducateur / Coach de club</option>
+            <option value="agent" {% if form_data and form_data.user_role == 'agent' %}selected{% endif %}>💼 Agent / Manager</option>
+            <option value="creator" {% if form_data and form_data.user_role == 'creator' %}selected{% endif %}>✍️ Créateur autorisé</option>
+          </select>
+        </div>
+
+        <div>
+          <label class="block text-xs font-bold uppercase tracking-widest text-slate-400 mb-1.5">
+            Signature (Nom et Prénom du déclarant) <span class="text-red-400">*</span>
+          </label>
+          <input type="text" name="parent_full_name" required
+                 value="{{ form_data.parent_full_name if form_data else '' }}"
+                 placeholder="Jean DUPONT"
+                 class="w-full rounded-lg border border-slate-200 px-4 py-2.5 text-sm shadow-sm focus:border-indigo-400 focus:outline-none focus:ring-1 focus:ring-indigo-400">
+        </div>
+
+        <div>
+          <label class="block text-xs font-bold uppercase tracking-widest text-slate-400 mb-1.5">
+            Votre adresse e-mail (Pour réception du lien de validation) <span class="text-red-400">*</span>
+          </label>
+          <input type="email" name="email" required
+                 value="{{ form_data.email if form_data else '' }}"
+                 placeholder="coach@monclub.fr"
+                 class="w-full rounded-lg border border-slate-200 px-4 py-2.5 text-sm shadow-sm focus:border-indigo-400 focus:outline-none focus:ring-1 focus:ring-indigo-400">
+        </div>
+
+        <div class="flex items-start mt-2">
+          <div class="flex items-center h-5">
+            <input id="parental_consent" name="parental_consent" type="checkbox" required
+                   class="h-4 w-4 rounded border-slate-300 text-indigo-600 focus:ring-indigo-500"
+                   {% if form_data and form_data.parental_consent %}checked{% endif %}>
+          </div>
+          <div class="ml-3 text-xs">
+            <label for="parental_consent" class="font-medium text-slate-700">
+              Je certifie sur l'honneur détenir l'autorisation légale ou parentale de diffusion pour ce mineur, conformément au règlement RGPD.
+            </label>
+          </div>
+        </div>
+      </div>
+
       <!-- Bouton -->
       <div class="pt-2">
         <button type="submit"
