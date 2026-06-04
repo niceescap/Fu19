@@ -2,58 +2,242 @@
 <html lang="fr" class="h-full bg-slate-50 text-slate-900">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=1400, user-scalable=yes">
-    <title>{% block title %}FJC - Espace Bâtisseur{% endblock %}</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}FJC — Next U19 Platform{% endblock %}</title>
     <script src="https://cdn.tailwindcss.com"></script>
     {% block extra_head %}{% endblock %}
 </head>
-<body class="flex h-full flex-col font-sans antialiased overflow-x-auto">
+<body class="flex h-full flex-col font-sans antialiased">
 
-    <!-- ================================================================
-         HEADER — Minimal, logo seul (cliquable → accueil)
-    ================================================================ -->
     <header class="border-b border-slate-200 bg-white sticky top-0 z-40">
-        <div class="mx-auto flex h-16 w-[1400px] items-center justify-between px-6">
-            <!-- Logo + Nom du site (cliquable → accueil) -->
+        <div class="mx-auto flex h-16 w-full max-w-7xl items-center justify-between px-4 sm:px-6">
+
             <a href="/fiches" class="flex items-center gap-3">
-                <div class="flex h-8 w-8 items-center justify-center rounded-md bg-indigo-600 text-white font-bold">
-                    Next U19
+                <div class="flex h-8 w-8 items-center justify-center rounded-md bg-indigo-600 text-white font-bold text-xs">
+                    U19
                 </div>
-                <span class="text-xl font-black tracking-tight text-slate-900">
+                <span class="text-lg sm:text-xl font-black tracking-tight text-slate-900">
                     Future Junior Cyclists
                 </span>
-                <span class="hidden sm:inline-flex rounded-md bg-slate-100 px-2 py-0.5 text-xs font-medium text-slate-600">
+                <span class="hidden md:inline-flex rounded-md bg-slate-100 px-2 py-0.5 text-xs font-medium text-slate-600">
                     Platform
                 </span>
             </a>
 
-            <!-- Partie droite : emplacement login (futur) -->
-            <div class="flex items-center gap-4">
-                <div class="text-sm font-medium text-slate-500 hidden sm:block">
-                    {{ current_user_email | default("admin@fjc.fr") }}
-                </div>
-                <div class="h-8 w-8 rounded-full bg-slate-200 border border-slate-300"></div>
+            <div class="flex items-center gap-2 sm:gap-3">
+
+                {% if current_user_email %}
+                <span class="hidden md:block text-sm text-slate-500 font-medium truncate max-w-[200px]">
+                    {{ current_user_email }}
+                </span>
+                <a href="/fiches/new"
+                   class="inline-flex items-center gap-1.5 rounded-md bg-indigo-600 px-3 py-1.5 text-sm font-semibold text-white hover:bg-indigo-700 transition-colors">
+                    <span class="sm:hidden">+</span><span class="hidden sm:inline">+ Nouvelle fiche</span>
+                </a>
+                <a href="/auth/logout"
+                   class="inline-flex items-center gap-1.5 rounded-md border border-slate-200 px-2.5 sm:px-3 py-1.5 text-sm font-medium text-slate-600 hover:bg-slate-50 hover:text-slate-900 transition-colors">
+                    Déconnexion
+                </a>
+
+                {% else %}
+                <button id="btn-login"
+                        class="inline-flex items-center gap-1.5 rounded-md border border-slate-200 px-3 py-1.5 text-sm font-medium text-slate-600 hover:bg-slate-50 hover:text-slate-900 transition-colors">
+                    Connexion
+                </button>
+                <a href="/creer"
+                   class="inline-flex items-center gap-1.5 rounded-md bg-indigo-600 px-3 py-1.5 text-sm font-semibold text-white hover:bg-indigo-700 transition-colors">
+                    + <span class="hidden sm:inline">Créer une fiche</span>
+                </a>
+                {% endif %}
+
             </div>
         </div>
     </header>
 
-    <!-- ================================================================
-         CORPS DE PAGE (contenu seul, sans sidebar)
-    ================================================================ -->
-    <div class="mx-auto flex w-[1400px] flex-1 px-6 py-8 overflow-hidden" style="min-height: 0;">
-        <!-- Contenu principal -->
-        <main class="w-full overflow-hidden flex flex-col" style="min-height: 0;">
+    <div id="popup-login"
+         class="fixed inset-0 z-50 hidden items-center justify-center bg-slate-900/40 backdrop-blur-sm p-4">
+        <div class="relative w-full max-w-sm bg-white rounded-xl shadow-xl border border-slate-200 p-6">
+
+            <button id="btn-close-login"
+                    class="absolute top-4 right-4 text-slate-400 hover:text-slate-600 transition-colors text-lg leading-none">
+                ✕
+            </button>
+
+            <div id="login-form-state">
+                <div class="mb-5">
+                    <div class="flex items-center gap-2 mb-1">
+                        <div class="h-6 w-6 rounded bg-indigo-600 flex items-center justify-center text-white text-[10px] font-bold">U</div>
+                        <span class="text-[10px] font-semibold text-slate-500 tracking-wide uppercase">Déjà inscrit ?</span>
+                    </div>
+                    <h2 class="text-lg font-bold text-slate-900">Accéder à mon espace</h2>
+                    <p class="text-sm text-slate-500 mt-1">
+                        Entrez votre adresse e-mail, nous vous envoyons un lien de connexion instantané.
+                    </p>
+                </div>
+
+                <form id="login-form" class="space-y-4">
+                    <div>
+                        <label for="login-email" class="block text-sm font-medium text-slate-700 mb-1">
+                            Adresse e-mail
+                        </label>
+                        <input id="login-email"
+                               type="email"
+                               required
+                               placeholder="votre@email.fr"
+                               class="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition">
+                    </div>
+
+                    <button type="submit"
+                            id="login-submit"
+                            class="w-full rounded-lg bg-indigo-600 px-4 py-2.5 text-sm font-semibold text-white hover:bg-indigo-700 transition-colors flex items-center justify-center gap-2">
+                        <span id="login-btn-text">Envoyer le lien magique</span>
+                        <svg id="login-spinner" class="hidden h-4 w-4 animate-spin" viewBox="0 0 24 24" fill="none">
+                            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"/>
+                            <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z"/>
+                        </svg>
+                    </button>
+                </form>
+
+                <p class="mt-4 text-center text-xs text-slate-400">
+                    Première visite ?
+                    <a href="/creer" class="text-indigo-600 font-medium hover:underline">Créez votre première fiche</a>
+                </p>
+            </div>
+
+            <div id="login-confirm-state" class="hidden text-center py-4">
+                <div class="inline-flex h-12 w-12 items-center justify-center rounded-full bg-green-100 text-green-600 text-2xl mb-4">
+                    📩
+                </div>
+                <h2 class="text-lg font-bold text-slate-900 mb-2">Lien envoyé !</h2>
+                <p class="text-sm text-slate-500" id="login-confirm-msg">
+                    Consultez votre boîte mail et cliquez sur le lien dans les 15 minutes.
+                </p>
+                <button id="btn-close-confirm"
+                        class="mt-5 w-full rounded-lg border border-slate-200 px-4 py-2 text-sm font-medium text-slate-600 hover:bg-slate-50 transition-colors">
+                    Fermer
+                </button>
+            </div>
+
+            <div id="login-error-state" class="hidden text-center py-4">
+                <div class="inline-flex h-12 w-12 items-center justify-center rounded-full bg-red-100 text-red-600 text-2xl mb-4">
+                    ❌
+                </div>
+                <h2 class="text-lg font-bold text-slate-900 mb-2">Erreur d'envoi</h2>
+                <p class="text-sm text-slate-500" id="login-error-msg">
+                    Une erreur est survenue. Réessayez dans quelques instants.
+                </p>
+                <button id="btn-retry"
+                        class="mt-5 w-full rounded-lg bg-indigo-600 px-4 py-2 text-sm font-semibold text-white hover:bg-indigo-700 transition-colors">
+                    Réessayer
+                </button>
+            </div>
+
+        </div>
+    </div>
+
+    <div class="mx-auto flex w-full max-w-7xl flex-1 px-4 sm:px-6 py-8" style="min-height: 0;">
+        <main class="w-full flex flex-col" style="min-height: 0;">
             {% block content %}
             <div class="rounded-lg border-2 border-dashed border-slate-300 bg-white p-12 text-center">
-                <svg class="mx-auto h-12 w-12 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 002-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
-                </svg>
-                <h3 class="mt-2 text-sm font-semibold text-slate-900">Zone de Contenu Centrale</h3>
-                <p class="mt-1 text-sm text-slate-500">Le template enfant (fiches_list ou fiche_athlete) n'a pas été injecté correctement.</p>
+                <h3 class="mt-2 text-sm font-semibold text-slate-900">Zone de contenu</h3>
+                <p class="mt-1 text-sm text-slate-500">Template enfant non injecté.</p>
             </div>
             {% endblock %}
         </main>
     </div>
+
+    <script>
+    (function () {
+        const popup        = document.getElementById("popup-login");
+        const btnOpen      = document.getElementById("btn-login");
+        const btnClose     = document.getElementById("btn-close-login");
+        const btnCloseConf = document.getElementById("btn-close-confirm");
+        const btnRetry     = document.getElementById("btn-retry");
+
+        const stateForm    = document.getElementById("login-form-state");
+        const stateConfirm = document.getElementById("login-confirm-state");
+        const stateError   = document.getElementById("login-error-state");
+
+        const form         = document.getElementById("login-form");
+        const emailInput   = document.getElementById("login-email");
+        const submitBtn    = document.getElementById("login-submit");
+        const btnText      = document.getElementById("login-btn-text");
+        const spinner      = document.getElementById("login-spinner");
+        const confirmMsg   = document.getElementById("login-confirm-msg");
+        const errorMsg     = document.getElementById("login-error-msg");
+
+        function openPopup() {
+            showState("form");
+            popup.classList.remove("hidden");
+            popup.classList.add("flex");
+            emailInput.focus();
+        }
+
+        function closePopup() {
+            popup.classList.add("hidden");
+            popup.classList.remove("flex");
+            form.reset();
+        }
+
+        function showState(state) {
+            stateForm.classList.add("hidden");
+            stateConfirm.classList.add("hidden");
+            stateError.classList.add("hidden");
+            if (state === "form")    stateForm.classList.remove("hidden");
+            if (state === "confirm") stateConfirm.classList.remove("hidden");
+            if (state === "error")   stateError.classList.remove("hidden");
+        }
+
+        if (btnOpen)      btnOpen.addEventListener("click", openPopup);
+        if (btnClose)     btnClose.addEventListener("click", closePopup);
+        if (btnCloseConf) btnCloseConf.addEventListener("click", closePopup);
+        if (btnRetry)     btnRetry.addEventListener("click", () => showState("form"));
+
+        popup.addEventListener("click", function (e) {
+            if (e.target === popup) closePopup();
+        });
+
+        document.addEventListener("keydown", function (e) {
+            if (e.key === "Escape") closePopup();
+        });
+
+        if (form) {
+            form.addEventListener("submit", async function (e) {
+                e.preventDefault();
+                const email = emailInput.value.trim().toLowerCase();
+                if (!email) return;
+
+                submitBtn.disabled = true;
+                btnText.textContent = "Envoi en cours…";
+                spinner.classList.remove("hidden");
+
+                try {
+                    const res = await fetch("/auth/login", {
+                        method: "POST",
+                        headers: { "Content-Type": "application/json" },
+                        body: JSON.stringify({ email })
+                    });
+                    const data = await res.json();
+
+                    if (res.ok && data.status === "SUCCESS") {
+                        confirmMsg.textContent = `Un lien a été envoyé à ${email}. Valable 15 minutes.`;
+                        showState("confirm");
+                    } else {
+                        errorMsg.textContent = data.message || "Erreur inconnue.";
+                        showState("error");
+                    }
+                } catch (err) {
+                    errorMsg.textContent = "Impossible de contacter le serveur.";
+                    showState("error");
+                } finally {
+                    submitBtn.disabled = false;
+                    btnText.textContent = "Envoyer le lien magique";
+                    spinner.classList.add("hidden");
+                }
+            });
+        }
+    })();
+    </script>
 
 </body>
 </html>
