@@ -36,7 +36,11 @@ METRICS_DIR = DATA_DIR / "metrics"
 # ==============================================================================
 ENV   = os.environ.get("FJC_ENV", "DEVELOPMENT")
 DEBUG = ENV == "DEVELOPMENT"
-
+ADMIN_EMAILS = {
+    e.strip().lower()
+    for e in os.environ.get("ADMIN_EMAILS", "").split(",")
+    if e.strip()
+}
 
 # ==============================================================================
 # 3. CONFIGURATION DES BASES DE DONNÉES
