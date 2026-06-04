@@ -107,22 +107,28 @@ def serve_profile_metrics(athlete_id, filename):
 def index():
     return redirect(url_for("fiches_list"))
 
-
 @app.route("/fiches")
 def fiches_list():
-    """Liste de toutes les fiches publiques."""
     db = SessionLocal()
     try:
         athletes_raw     = db.query(Athlete).filter(Athlete.status == "PUBLIC").all()
         athletes         = [athlete_to_dict(a) for a in athletes_raw]
         stats            = build_stats(athletes)
         user_email       = session.get("user_email")
+        
         user_athlete_ids = []
         if user_email:
-            user_data = get_user_dashboard_data(db, user_email)
-            if user_data and user_data.athletes:
-                user_athlete_ids = [a.id for a in user_data.athletes]
-    
+            user_email_clean = user_email.strip().lower()
+            
+            # 👑 Si c'est l'admin suprême, il possède TOUTES les fiches
+            if user_email_clean in ADMIN_EMAILS:
+                user_athlete_ids = [a["id"] for a in athletes]
+            else:
+                # Sinon, parcours classique pour les utilisateurs normaux
+                user_data = get_user_dashboard_data(db, user_email_clean)
+                if user_data and user_data.athletes:
+                    user_athlete_ids = [a.id for a in user_data.athletes]
+                
     finally:
         db.close()
 
