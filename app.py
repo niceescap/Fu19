@@ -33,6 +33,7 @@ from sqlalchemy.orm.attributes import flag_modified
 from auth.magic_linker import MagicLinker
 from core.legal_filters import validate_legal_requirements
 from processors.emailer import send_magic_link
+from data.queries import get_user_dashboard_data
 
 # ==============================================================================
 app = Flask(
@@ -116,7 +117,12 @@ def fiches_list():
         athletes         = [athlete_to_dict(a) for a in athletes_raw]
         stats            = build_stats(athletes)
         user_email       = session.get("user_email")
-        user_athlete_ids = [a["id"] for a in athletes]
+        user_athlete_ids = []
+        if user_email:
+            user_data = get_user_dashboard_data(db, user_email)
+            if user_data and user_data.athletes:
+                user_athlete_ids = [a.id for a in user_data.athletes]
+    
     finally:
         db.close()
 
