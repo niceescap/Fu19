@@ -100,7 +100,7 @@ ARCHIVE_RETENTION_YEARS = 15
 # ==============================================================================
 # 7. CONFIGURATION WEB ET TEMPLATES
 # ==============================================================================
-BASE_URL = os.environ.get("BASE_URL", "https://proto.fu19.org")
+BASE_URL = os.environ.get("BASE_URL", "https://fu19.org")
 
 WEB_DIR       = BASE_DIR / "web"
 TEMPLATES_DIR = WEB_DIR / "templates"
