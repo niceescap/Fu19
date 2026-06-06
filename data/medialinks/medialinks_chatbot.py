@@ -2,6 +2,7 @@
 import os
 import json
 import requests
+import hashlib
 from flask import Blueprint, render_template, request, redirect, url_for, flash, session
 from urllib.parse import urlparse, urlunparse
 from bs4 import BeautifulSoup
@@ -216,7 +217,7 @@ def send_message(athlete_id):
                     
                     label = media.get("label", val)
                     # Clé unique pour le dictionnaire JSON
-                    key = f"{media.get('type', 'profile')}_{label}"
+                    key = f"{media.get('type', 'profile')}_{hashlib.md5(val.encode()).hexdigest()[:8]}"
                     
                     medias["links"][key] = {
                         "url": val,
