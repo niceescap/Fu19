@@ -9,7 +9,7 @@ Appelé par app.py via send_magic_link(), jamais directement par l'utilisateur.
 Configuration attendue dans .env :
     FU19_SMTP_USER=auth@fu19.org
     FU19_SMTP_KEY=votre_clé_tem
-    BASE_URL=https://proto.fu19.org
+    BASE_URL=https://fu19.org
 """
 
 import os
