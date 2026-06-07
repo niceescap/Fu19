@@ -563,10 +563,9 @@ def palmares_add(athlete_id):
 
     return redirect(url_for("fiche_edit", athlete_id=athlete_id))
 
-
 @app.route("/fiche/<athlete_id>/palmares/delete/<int:index>", methods=["POST"])
 def palmares_delete(athlete_id, index):
-    """Suppression d'une ligne de palmarès par index — corrigé ORM."""
+    """Suppression d'une ligne de palmarès par index — avec tri identique au template."""
     if not session.get("user_email"):
         flash("🔒 Connectez-vous pour modifier une fiche.", "warning")
         return redirect(url_for("fiches_list"))
@@ -575,10 +574,28 @@ def palmares_delete(athlete_id, index):
     try:
         ath = get_athlete_or_404(db, athlete_id)
         if ath:
-            palmares = list(ath.palmares) if ath.palmares else []
-            if 0 <= index < len(palmares):
-                palmares.pop(index)
-                ath.palmares = palmares
+            # Récupération et tri exactement comme dans le template
+            palmares_raw = list(ath.palmares) if ath.palmares else []
+            # Tri par date décroissante (même principe que le template :
+            # {% for result in athlete.palmares | sort(attribute='date', reverse=True) %})
+            palmares_sorted = sorted(palmares_raw,
+                                     key=lambda x: x.get("date", ""),
+                                     reverse=True)
+
+            if 0 <= index < len(palmares_sorted):
+                # On retire l'élément de la liste triée, mais il faut ensuite
+                # reconstruire la liste originale sans cet élément.
+                # On peut plutôt supprimer de la liste brute en retrouvant l'élément.
+                # Pour éviter des problèmes de doublons, on va plutôt reconstruire
+                # une nouvelle liste sans l'élément à l'index donné.
+                # Méthode simple : on parcourt la liste triée, on garde tout sauf l'index.
+                new_palmares = [item for i, item in enumerate(palmares_sorted) if i != index]
+                # On veut préserver l'ordre original ? Pas nécessaire car le template
+                # triera toujours. On peut directement sauvegarder la liste non triée,
+                # mais c'est plus propre de conserver l'ordre tel quel.
+                # On va simplement sauvegarder la liste sans l'élément (ordre de tri conservé,
+                # mais de toute façon le template triera à l'affichage).
+                ath.palmares = new_palmares
                 flag_modified(ath, "palmares")
                 db.commit()
                 flash("🗑️ Résultat supprimé.", "success")
