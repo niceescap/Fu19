@@ -162,7 +162,7 @@ def fiche_athlete(athlete_id):
 
         editable = (session.get("user_email") is not None)
         owners = [o.email for o in ath.owners]
-           is_claimable = owners == ["import@fu19.org"]
+        is_claimable = owners == ["import@fu19.org"]
     finally:
         db.close()
 
