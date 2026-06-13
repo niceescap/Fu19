@@ -33,6 +33,8 @@ from sqlalchemy.orm.attributes import flag_modified
 from auth.magic_linker import MagicLinker
 from core.legal_filters import validate_legal_requirements
 from processors.emailer import send_magic_link
+from processors.notifier import send_claim_magic_link, send_report_notification
+from data.models import athlete_owners
 from data.queries import get_user_dashboard_data
 
 # ==============================================================================
@@ -280,6 +282,378 @@ def auth_logout():
     session.clear()
     flash("👋 Vous êtes déconnecté.", "success")
     return redirect(url_for("fiches_list"))
+
+# ==============================================================================
+# ROUTES — REVENDICATION & SIGNALEMENT
+# À coller après auth_logout() et avant create_fiche()
+# ==============================================================================
+
+# ------------------------------------------------------------------------------
+# ÉTAPE 1/2 REVENDICATION — Formulaire + validation légale + magic link
+# ------------------------------------------------------------------------------
+@app.route("/fiche/<athlete_id>/revendiquer", methods=["GET", "POST"])
+def revendiquer_fiche(athlete_id):
+    """
+    GET  → Affiche le formulaire de revendication (legal_filters + email).
+    POST → Valide les conditions légales, génère un magic link spécifique
+           à la revendication et l'envoie au demandeur.
+           La fiche n'est PAS modifiée tant que le lien n'a pas été cliqué.
+    """
+    db = SessionLocal()
+    try:
+        ath = get_athlete_or_404(db, athlete_id)
+        if not ath:
+            return redirect(url_for("fiches_list"))
+        athlete = athlete_to_dict(ath)
+
+        # Vérification : la fiche est-elle revendiquable ?
+        # Une fiche n'est revendiquable que si son seul owner est import@fu19.org
+        owners = [o.email for o in ath.owners]
+        is_claimable = owners == ["import@fu19.org"]
+
+        if not is_claimable:
+            flash("⛔ Cette fiche est déjà rattachée à un propriétaire légal.", "error")
+            return redirect(url_for("fiche_athlete", athlete_id=athlete_id))
+
+    finally:
+        db.close()
+
+    if request.method == "GET":
+        return render_template(
+            "revendiquer_fiche.html",
+            athlete=athlete,
+            current_user_email=session.get("user_email")
+        )
+
+    # ── POST : validation légale ───────────────────────────────────────────────
+    form_data = {
+        "parental_consent": request.form.get("parental_consent"),
+        "parent_full_name": request.form.get("parent_full_name"),
+        "user_role":        request.form.get("user_role"),
+        "email":            request.form.get("email", "").strip().lower(),
+    }
+
+    is_legal, legal_msg = validate_legal_requirements(form_data)
+    if not is_legal:
+        flash(f"❌ {legal_msg}", "error")
+        return render_template(
+            "revendiquer_fiche.html",
+            athlete=athlete,
+            form_data=form_data,
+            current_user_email=session.get("user_email")
+        )
+
+    # ── Génération du magic link de revendication ──────────────────────────────
+    # On réutilise MagicLinker (même mécanique que l'auth classique)
+    # mais l'URL cible est /auth/claim au lieu de /auth/verify,
+    # ce qui permet de distinguer les deux flux à l'arrivée.
+    db = SessionLocal()
+    try:
+        linker    = MagicLinker()
+        email     = form_data["email"]
+        token_url = linker.request_login(db, email)
+
+        # Reconstruction de l'URL vers /auth/claim avec athlete_id en paramètre
+        # Le token et l'email sont déjà dans token_url (/auth/verify?token=...&email=...)
+        # On remplace /auth/verify par /auth/claim et on ajoute athlete_id
+        from urllib.parse import urlparse, parse_qs, urlencode, urlunparse
+        parsed   = urlparse(token_url)
+        params   = parse_qs(parsed.query)
+        token    = params["token"][0]
+        from core.config import BASE_URL as _BASE_URL
+        claim_url = (
+            f"{_BASE_URL}/auth/claim"
+            f"?token={token}&email={email}&athlete_id={athlete_id}"
+        )
+
+        # Mise en soute des données de revendication dans la session
+        # (rôle et signature légale à conserver pour la table d'association)
+        session["pending_claim"] = {
+            "athlete_id":    athlete_id,
+            "claimer_email": email,
+            "role":          form_data["user_role"],
+            "declarant":     form_data["parent_full_name"],
+        }
+
+        # Envoi de l'email via notifier.py
+        athlete_name = f"{athlete['prenom']} {athlete['nom']}"
+        result = send_claim_magic_link(email, athlete_name, claim_url)
+
+        if result["status"] == "ERROR":
+            flash(f"❌ Erreur envoi email : {result['message']}", "error")
+            return render_template(
+                "revendiquer_fiche.html",
+                athlete=athlete,
+                form_data=form_data,
+                current_user_email=session.get("user_email")
+            )
+
+        flash(
+            f"📩 Un lien de revendication a été envoyé à {email}. "
+            f"Cliquez dessus dans les 15 minutes pour finaliser.",
+            "success"
+        )
+
+    except Exception as e:
+        flash(f"❌ Erreur : {str(e)}", "error")
+    finally:
+        db.close()
+
+    return redirect(url_for("fiche_athlete", athlete_id=athlete_id))
+
+
+# ------------------------------------------------------------------------------
+# ÉTAPE 2/2 REVENDICATION — Consommation du magic link
+# ------------------------------------------------------------------------------
+@app.route("/auth/claim")
+def auth_claim():
+    """
+    Endpoint de réception du magic link de revendication.
+    Vérifie le token, rattache le nouveau owner légal à la fiche,
+    retire import@fu19.org de la table d'association.
+    """
+    token      = request.args.get("token")
+    email      = request.args.get("email", "").strip().lower()
+    athlete_id = request.args.get("athlete_id", "").strip()
+
+    if not token or not email or not athlete_id:
+        flash("❌ Lien de revendication invalide ou incomplet.", "error")
+        return redirect(url_for("fiches_list"))
+
+    db = SessionLocal()
+    try:
+        # Vérification et consommation du token (anti-replay intégré dans MagicLinker)
+        linker = MagicLinker()
+        is_valid = linker.process_landing(db, email, token)
+
+        if not is_valid:
+            flash("❌ Lien invalide, expiré ou déjà utilisé.", "error")
+            return redirect(url_for("fiches_list"))
+
+        # Récupération de la fiche et vérification qu'elle est encore revendiquable
+        ath = db.query(Athlete).filter(Athlete.id == athlete_id).first()
+        if not ath:
+            flash("❌ Fiche introuvable.", "error")
+            return redirect(url_for("fiches_list"))
+
+        owners = [o.email for o in ath.owners]
+        if owners != ["import@fu19.org"]:
+            flash("⚠️ Cette fiche a déjà été revendiquée.", "warning")
+            return redirect(url_for("fiche_athlete", athlete_id=athlete_id))
+
+        # Récupération du rôle depuis la session en soute
+        pending = session.pop("pending_claim", {})
+        role    = pending.get("role", "parent")
+
+        # Rattachement du nouveau owner légal via la table d'association
+        from data.queries import get_or_create_user
+        new_owner = get_or_create_user(db, email)
+        ath.owners.append(new_owner)
+
+        # Mise à jour du rôle dans la table athlete_owners
+        db.execute(
+            athlete_owners.update()
+            .where(athlete_owners.c.user_email == email)
+            .where(athlete_owners.c.athlete_id == athlete_id)
+            .values(role=role)
+        )
+
+        # Retrait de import@fu19.org de la table d'association
+        # (suppression de la ligne dans athlete_owners, pas du User)
+        db.execute(
+            athlete_owners.delete()
+            .where(athlete_owners.c.user_email == "import@fu19.org")
+            .where(athlete_owners.c.athlete_id == athlete_id)
+        )
+
+        db.commit()
+
+        # Ouverture de la session utilisateur
+        session["user_email"] = email
+
+        flash(
+            f"✅ Fiche de {ath.prenom} {ath.nom} revendiquée avec succès ! "
+            f"Vous pouvez maintenant l'enrichir.",
+            "success"
+        )
+        return redirect(url_for("fiche_edit", athlete_id=athlete_id))
+
+    except Exception as e:
+        db.rollback()
+        flash(f"❌ Erreur lors de la revendication : {str(e)}", "error")
+        return redirect(url_for("fiches_list"))
+    finally:
+        db.close()
+
+
+# ------------------------------------------------------------------------------
+# ÉTAPE 1/2 SIGNALEMENT — Formulaire + magic link de vérification reporter
+# ------------------------------------------------------------------------------
+@app.route("/fiche/<athlete_id>/signaler", methods=["GET", "POST"])
+def signaler_fiche(athlete_id):
+    """
+    GET  → Affiche le formulaire de signalement (motif + détail + email).
+    POST → Génère un magic link envoyé au reporter pour vérifier son identité.
+           La notification admin n'est envoyée qu'après clic sur le lien,
+           ce qui évite les signalements anonymes ou automatisés.
+    """
+    db = SessionLocal()
+    try:
+        ath = get_athlete_or_404(db, athlete_id)
+        if not ath:
+            return redirect(url_for("fiches_list"))
+        athlete = athlete_to_dict(ath)
+    finally:
+        db.close()
+
+    # Import des motifs depuis notifier.py pour les afficher dans le template
+    from processors.notifier import REPORT_REASONS
+
+    if request.method == "GET":
+        return render_template(
+            "signaler_fiche.html",
+            athlete=athlete,
+            report_reasons=REPORT_REASONS,
+            current_user_email=session.get("user_email")
+        )
+
+    # ── POST : collecte du signalement + envoi magic link ─────────────────────
+    email      = request.form.get("email", "").strip().lower()
+    reason_key = request.form.get("reason_key", "autre")
+    detail     = request.form.get("detail", "").strip()
+
+    if not email:
+        flash("❌ Votre adresse e-mail est obligatoire pour signaler.", "error")
+        return render_template(
+            "signaler_fiche.html",
+            athlete=athlete,
+            report_reasons=REPORT_REASONS,
+            current_user_email=session.get("user_email")
+        )
+
+    # Mise en soute du signalement (envoyé aux admins seulement après vérification)
+    session["pending_report"] = {
+        "athlete_id":     athlete_id,
+        "athlete_name":   f"{athlete['prenom']} {athlete['nom']}",
+        "reason_key":     reason_key,
+        "detail":         detail,
+        "reporter_email": email,
+    }
+
+    db = SessionLocal()
+    try:
+        # Magic link standard — l'URL cible est /auth/report
+        linker    = MagicLinker()
+        token_url = linker.request_login(db, email)
+
+        from urllib.parse import urlparse, parse_qs
+        from core.config import BASE_URL as _BASE_URL
+        parsed   = urlparse(token_url)
+        params   = parse_qs(parsed.query)
+        token    = params["token"][0]
+        report_url = (
+            f"{_BASE_URL}/auth/report"
+            f"?token={token}&email={email}"
+        )
+
+        # Envoi du magic link au reporter via emailer classique
+        result = send_magic_link(email, report_url)
+        if result["status"] == "ERROR":
+            flash(f"❌ Erreur envoi email : {result['message']}", "error")
+            return render_template(
+                "signaler_fiche.html",
+                athlete=athlete,
+                report_reasons=REPORT_REASONS,
+                current_user_email=session.get("user_email")
+            )
+
+        flash(
+            f"📩 Un lien de confirmation a été envoyé à {email}. "
+            f"Cliquez dessus pour finaliser votre signalement.",
+            "success"
+        )
+
+    except Exception as e:
+        flash(f"❌ Erreur : {str(e)}", "error")
+    finally:
+        db.close()
+
+    return redirect(url_for("fiche_athlete", athlete_id=athlete_id))
+
+
+# ------------------------------------------------------------------------------
+# ÉTAPE 2/2 SIGNALEMENT — Consommation du magic link + notification admins
+# ------------------------------------------------------------------------------
+@app.route("/auth/report")
+def auth_report():
+    """
+    Endpoint de réception du magic link de signalement.
+    Vérifie le token, puis envoie la notification aux admins via notifier.py.
+    La fiche n'est jamais modifiée automatiquement — suivi humain attendu.
+    """
+    token = request.args.get("token")
+    email = request.args.get("email", "").strip().lower()
+
+    if not token or not email:
+        flash("❌ Lien de signalement invalide.", "error")
+        return redirect(url_for("fiches_list"))
+
+    db = SessionLocal()
+    try:
+        linker   = MagicLinker()
+        is_valid = linker.process_landing(db, email, token)
+
+        if not is_valid:
+            flash("❌ Lien invalide, expiré ou déjà utilisé.", "error")
+            return redirect(url_for("fiches_list"))
+
+        # Récupération du signalement en soute
+        pending = session.pop("pending_report", None)
+
+        if not pending:
+            # Cas rare : session expirée entre le formulaire et le clic
+            flash(
+                "⚠️ Session expirée. Merci de recommencer votre signalement.",
+                "warning"
+            )
+            return redirect(url_for("fiches_list"))
+
+        # Envoi de la notification aux admins via notifier.py
+        result = send_report_notification(
+            athlete_id    = pending["athlete_id"],
+            athlete_name  = pending["athlete_name"],
+            reason_key    = pending["reason_key"],
+            detail        = pending["detail"],
+            reporter_email= pending["reporter_email"],
+        )
+
+        if result["status"] == "SUCCESS":
+            flash(
+                "✅ Votre signalement a été transmis à l'équipe fU19. "
+                "Un suivi humain sera effectué dans les meilleurs délais.",
+                "success"
+            )
+        elif result["status"] == "PARTIAL":
+            # Certains admins ont reçu, pas tous — on confirme quand même au reporter
+            flash(
+                "✅ Signalement transmis. Merci pour votre vigilance.",
+                "success"
+            )
+        else:
+            flash(
+                "⚠️ Votre signalement a été enregistré mais l'envoi a échoué. "
+                "Contactez directement contact@fu19.org.",
+                "warning"
+            )
+
+        return redirect(url_for("fiche_athlete", athlete_id=pending["athlete_id"]))
+
+    except Exception as e:
+        flash(f"❌ Erreur : {str(e)}", "error")
+        return redirect(url_for("fiches_list"))
+    finally:
+        db.close()
+
 
 
 # ==============================================================================
