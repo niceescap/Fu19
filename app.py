@@ -161,13 +161,16 @@ def fiche_athlete(athlete_id):
         )
 
         editable = (session.get("user_email") is not None)
+        owners = [o.email for o in ath.owners]
+           is_claimable = owners == ["import@fu19.org"]
     finally:
         db.close()
 
     return render_template("fiche_athlete.html",
                            athlete=athlete,
                            current_user_email=session.get("user_email"),
-                           editable=editable)
+                           editable=editable,
+                           is_claimable=is_claimable)
 
 @app.route("/fiche/<athlete_id>/edit")
 def fiche_edit(athlete_id):
