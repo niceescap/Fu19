@@ -520,21 +520,21 @@
             </div>
             {% endif %}
     
-           {% if is_claimable %}
-            <a href="/fiche/{{ athlete.id }}/revendiquer"
-               class="flex items-center gap-3 px-4 py-3 text-sm font-medium text-indigo-600 hover:bg-indigo-50 transition-colors border-t border-slate-100">
+      {% if is_claimable %}
+            <button onclick="openModal('modal-revendiquer'); toggleMenu()"
+                    class="w-full flex items-center gap-3 px-4 py-3 text-sm font-medium text-indigo-600 hover:bg-indigo-50 transition-colors border-t border-slate-100">
                 🏷️ <span>Revendiquer cette fiche</span>
-            </a>
+            </button>
             {% else %}
             <div class="flex items-center gap-3 px-4 py-3 text-sm font-medium text-slate-300 cursor-not-allowed select-none border-t border-slate-100">
                 🏷️ <span>Revendiquer cette fiche</span>
             </div>
-            {% endif %}
+            {% endif %}     
 
-            <a href="/fiche/{{ athlete.id }}/signaler"
-               class="flex items-center gap-3 px-4 py-3 text-sm font-medium text-red-500 hover:bg-red-50 transition-colors border-t border-slate-100">
+            <button onclick="openModal('modal-signaler'); toggleMenu()"
+                    class="w-full flex items-center gap-3 px-4 py-3 text-sm font-medium text-red-500 hover:bg-red-50 transition-colors border-t border-slate-100">
                 ⚠️ <span>Signaler</span>
-            </a>
+            </button>
         </div>
     </div>
 
@@ -685,18 +685,209 @@
     </div>
     {% endif %}
 </div>
+<!-- ============================================================
+     MODALE REVENDIQUER
+============================================================ -->
+<div id="modal-revendiquer"
+     class="fixed inset-0 z-50 hidden items-center justify-center bg-slate-900/40 backdrop-blur-sm p-4">
+    <div class="relative w-full max-w-md bg-white rounded-xl shadow-xl border border-slate-200 p-8">
 
-<!-- Script pour le menu actions -->
+        <button onclick="closeModal('modal-revendiquer')"
+                class="absolute top-4 right-4 text-slate-400 hover:text-slate-600 transition-colors text-lg leading-none">✕</button>
+
+        <!-- En-tête -->
+        <div class="mb-6">
+            <div class="flex items-center gap-2 mb-2">
+                <div class="h-6 w-6 rounded bg-indigo-600 flex items-center justify-center text-white text-[9px] font-bold tracking-tight">f-U19</div>
+                <span class="text-[10px] font-semibold text-slate-500 tracking-wide uppercase">Revendication de fiche</span>
+            </div>
+            <p class="text-sm text-slate-600 leading-relaxed">
+                Si vous êtes représentant légal de <strong>{{ athlete.prenom }}</strong>,
+                ou explicitement autorisé à diffuser ses informations, son palmarès et ses liens médias,
+                vous pouvez revendiquer l'administration de sa fiche FJC et envoyer ses données dans le futur !
+            </p>
+            <p class="text-sm text-slate-500 mt-3">La connexion se fait par e-mail.</p>
+            <p class="text-xs text-slate-400 mt-1 font-medium">fU19.org — Next U19 Platform</p>
+        </div>
+
+        <!-- Formulaire legal_filters -->
+        <form method="POST" action="/fiche/{{ athlete.id }}/revendiquer" class="space-y-4">
+
+            <div>
+                <label class="block text-xs font-bold uppercase tracking-widest text-slate-400 mb-1">
+                    Votre rôle
+                </label>
+                <select name="user_role"
+                        class="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm focus:border-indigo-400 focus:outline-none focus:ring-1 focus:ring-indigo-400">
+                    <option value="parent">Parent / Représentant légal</option>
+                    <option value="coach">Éducateur / Coach</option>
+                    <option value="agent">Agent sportif</option>
+                    <option value="creator">Autre — autorisé expressément</option>
+                </select>
+            </div>
+
+            <div>
+                <label class="block text-xs font-bold uppercase tracking-widest text-slate-400 mb-1">
+                    Signature numérique — Nom complet
+                </label>
+                <input type="text" name="parent_full_name" required
+                       placeholder="Prénom NOM"
+                       class="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm focus:border-indigo-400 focus:outline-none focus:ring-1 focus:ring-indigo-400">
+            </div>
+
+            <div>
+                <label class="block text-xs font-bold uppercase tracking-widest text-slate-400 mb-1">
+                    Votre adresse e-mail
+                </label>
+                <input type="email" name="email" required
+                       placeholder="votre@email.fr"
+                       class="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm focus:border-indigo-400 focus:outline-none focus:ring-1 focus:ring-indigo-400">
+            </div>
+
+            <label class="flex items-start gap-3 cursor-pointer">
+                <input type="checkbox" name="parental_consent" value="on"
+                       class="mt-0.5 accent-indigo-600 shrink-0">
+                <span class="text-xs text-slate-500 leading-relaxed">
+                    Je certifie être le représentant légal ou détenir l'autorisation explicite
+                    de diffuser les informations de cet athlète mineur sur la plateforme fU19,
+                    conformément au RGPD et à la législation en vigueur sur la protection des mineurs.
+                </span>
+            </label>
+
+            <button type="submit"
+                    class="w-full rounded-lg bg-indigo-600 px-4 py-2.5 text-sm font-semibold text-white hover:bg-indigo-700 transition-colors">
+                Revendiquer cette fiche →
+            </button>
+        </form>
+    </div>
+</div>
+
+
+<!-- ============================================================
+     MODALE SIGNALER
+============================================================ -->
+<div id="modal-signaler"
+     class="fixed inset-0 z-50 hidden items-center justify-center bg-slate-900/40 backdrop-blur-sm p-4">
+    <div class="relative w-full max-w-md bg-white rounded-xl shadow-xl border border-slate-200 p-8">
+
+        <button onclick="closeModal('modal-signaler')"
+                class="absolute top-4 right-4 text-slate-400 hover:text-slate-600 transition-colors text-lg leading-none">✕</button>
+
+        <!-- En-tête -->
+        <div class="mb-6">
+            <div class="flex items-center gap-2 mb-2">
+                <div class="h-6 w-6 rounded bg-red-500 flex items-center justify-center text-white text-[9px] font-bold tracking-tight">f-U19</div>
+                <span class="text-[10px] font-semibold text-slate-500 tracking-wide uppercase">Signalement</span>
+            </div>
+            <p class="text-sm text-slate-600 leading-relaxed">
+                Si vous êtes représentant légal de <strong>{{ athlete.prenom }}</strong>
+                et que vous vous opposez strictement à sa présence sur la plateforme
+                Future Junior Cyclists, vous pouvez
+                <button onclick="closeModal('modal-signaler'); openModal('modal-revendiquer')"
+                        class="text-indigo-600 font-semibold hover:underline">
+                    revendiquer
+                </button>
+                l'administration de sa fiche FJC pour la supprimer en deux clics.
+            </p>
+            <p class="text-sm text-slate-500 mt-3 leading-relaxed">
+                Si vous souhaitez signaler un abus, poursuivez ici et nous traiterons
+                avec soin votre démarche.
+            </p>
+            <p class="text-xs text-slate-400 mt-2 font-medium">fU19.org — Next U19 Platform</p>
+        </div>
+
+        <!-- Formulaire signalement -->
+        <form method="POST" action="/fiche/{{ athlete.id }}/signaler" class="space-y-4">
+
+            <div>
+                <label class="block text-xs font-bold uppercase tracking-widest text-slate-400 mb-1">
+                    Motif du signalement
+                </label>
+                <select name="reason_key"
+                        class="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm focus:border-red-400 focus:outline-none focus:ring-1 focus:ring-red-400">
+                    <option value="inexact">Informations inexactes ou erronées</option>
+                    <option value="usurpation">Usurpation d'identité ou fiche non autorisée</option>
+                    <option value="mineur">Protection du mineur — contenu inapproprié</option>
+                    <option value="doublon">Fiche en doublon</option>
+                    <option value="autre">Autre motif</option>
+                </select>
+            </div>
+
+            <div>
+                <label class="block text-xs font-bold uppercase tracking-widest text-slate-400 mb-1">
+                    Détail <span class="text-slate-300 normal-case font-normal tracking-normal">(optionnel)</span>
+                </label>
+                <textarea name="detail" rows="3"
+                          placeholder="Précisez si nécessaire…"
+                          class="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm resize-none focus:border-red-400 focus:outline-none focus:ring-1 focus:ring-red-400"></textarea>
+            </div>
+
+            <div>
+                <label class="block text-xs font-bold uppercase tracking-widest text-slate-400 mb-1">
+                    Votre adresse e-mail
+                </label>
+                <input type="email" name="email" required
+                       placeholder="votre@email.fr"
+                       class="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm focus:border-red-400 focus:outline-none focus:ring-1 focus:ring-red-400">
+                <p class="text-xs text-slate-400 mt-1">
+                    Un lien de confirmation vous sera envoyé avant transmission à l'équipe fU19.
+                </p>
+            </div>
+
+            <button type="submit"
+                    class="w-full rounded-lg bg-red-500 px-4 py-2.5 text-sm font-semibold text-white hover:bg-red-600 transition-colors">
+                Envoyer le signalement →
+            </button>
+        </form>
+    </div>
+</div>
+
+
+<!-- ============================================================
+     JS — Gestion des modales + liens depuis le menu •••
+     À remplacer le <script> toggleMenu existant
+============================================================ -->
 <script>
-function toggleMenu() {
-    const d = document.getElementById('dropdown-actions');
-    d.classList.toggle('hidden');
+// ── Modales ────────────────────────────────────────────────────────────────
+function openModal(id) {
+    const m = document.getElementById(id);
+    m.classList.remove("hidden");
+    m.classList.add("flex");
 }
-document.addEventListener('click', function(e) {
-    const menu = document.getElementById('menu-actions');
-    if (!menu.contains(e.target)) {
-        document.getElementById('dropdown-actions').classList.add('hidden');
+
+function closeModal(id) {
+    const m = document.getElementById(id);
+    m.classList.add("hidden");
+    m.classList.remove("flex");
+}
+
+// Fermeture au clic sur le fond
+document.querySelectorAll('[id^="modal-"]').forEach(function(modal) {
+    modal.addEventListener("click", function(e) {
+        if (e.target === modal) closeModal(modal.id);
+    });
+});
+
+// Fermeture à l'Echap
+document.addEventListener("keydown", function(e) {
+    if (e.key === "Escape") {
+        closeModal("modal-revendiquer");
+        closeModal("modal-signaler");
+        document.getElementById("dropdown-actions").classList.add("hidden");
+    }
+});
+
+// ── Menu ••• ───────────────────────────────────────────────────────────────
+function toggleMenu() {
+    document.getElementById("dropdown-actions").classList.toggle("hidden");
+}
+
+document.addEventListener("click", function(e) {
+    const menu = document.getElementById("menu-actions");
+    if (menu && !menu.contains(e.target)) {
+        document.getElementById("dropdown-actions").classList.add("hidden");
     }
 });
 </script>
+
 {% endblock %}
