@@ -232,7 +232,7 @@
 // ── État global ────────────────────────────────────────────────────────────────
 const state = {
   filters: { sexe: 'tous', year: 'tous', nation: 'tous' },
-  sort:    { key: 'score', dir: 'desc' },   // tri par défaut : données décroissant
+  sort:    { key: 'score', dir: 'asc' },   // tri par défaut : données décroissant
 };
 
 // ── Données des cartes (snapshot DOM au chargement) ───────────────────────────
@@ -390,7 +390,7 @@ function resetAll() {
   });
 
   // Tri par défaut
-  state.sort = { key: 'score', dir: 'desc' };
+  state.sort = { key: 'score', dir: 'asc' };
   updateSortUI();
 
   applyAll();
