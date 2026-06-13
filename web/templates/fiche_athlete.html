@@ -9,14 +9,6 @@
 <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@300;400;700;900&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
 
 <style>
-   
-   <!-- Open Graph -->
-<meta property="og:title" content="{{ athlete.prenom }} {{ athlete.nom }} — FJC Rider Card">
-<meta property="og:description" content="Fiche athlète certifiée — Junior {{ athlete.junior_horizon }} · {{ athlete.nationalite }}">
-<meta property="og:image" content="https://proto.fu19.org/static/avatar_default.png">
-<meta property="og:url" content="https://proto.fu19.org/fiche/{{ athlete.id }}">
-<meta property="og:type" content="profile">
-   
     * { margin:0; padding:0; box-sizing:border-box; }
 
     body {
@@ -507,21 +499,53 @@
 {% block content %}
 <div class="fiche">
 
-    {% if editable %}
-    <a href="/fiche/{{ athlete.id }}/edit"
-       class="absolute top-4 right-4 z-20 bg-white border border-slate-200 rounded-full w-8 h-8 flex items-center justify-center text-slate-400 hover:text-indigo-600 hover:border-indigo-300 shadow-sm text-sm transition-colors"
-       title="Éditer cette fiche">
-        ✏️
-    </a>
-    {% endif %}
+    <!-- ••• Menu actions fiche (intégré) -->
+    <div class="absolute top-4 right-4 z-20" id="menu-actions">
+        <button onclick="toggleMenu()"
+                class="bg-white border border-slate-200 rounded-full w-9 h-9 flex items-center justify-center text-slate-500 hover:text-slate-900 hover:border-slate-300 shadow-sm text-sm transition-colors font-bold tracking-widest">
+            •••
+        </button>
 
+        <div id="dropdown-actions"
+             class="hidden absolute right-0 mt-2 w-52 bg-white border border-slate-200 rounded-xl shadow-lg overflow-hidden z-30">
+
+            {% if editable %}
+            <a href="/fiche/{{ athlete.id }}/edit"
+               class="flex items-center gap-3 px-4 py-3 text-sm font-medium text-slate-700 hover:bg-slate-50 transition-colors">
+                ✏️ <span>Éditer la fiche</span>
+            </a>
+            {% else %}
+            <div class="flex items-center gap-3 px-4 py-3 text-sm font-medium text-slate-300 cursor-not-allowed select-none">
+                ✏️ <span>Éditer la fiche</span>
+            </div>
+            {% endif %}
+
+            {% set owners = athlete.get('owners', []) %}
+            {% set is_claimable = (owners | length == 1 and owners[0] == 'import@fu19.org') %}
+            {% if is_claimable %}
+            <a href="/fiche/{{ athlete.id }}/revendiquer"
+               class="flex items-center gap-3 px-4 py-3 text-sm font-medium text-indigo-600 hover:bg-indigo-50 transition-colors border-t border-slate-100">
+                🏷️ <span>Revendiquer cette fiche</span>
+            </a>
+            {% else %}
+            <div class="flex items-center gap-3 px-4 py-3 text-sm font-medium text-slate-300 cursor-not-allowed select-none border-t border-slate-100">
+                🏷️ <span>Revendiquer cette fiche</span>
+            </div>
+            {% endif %}
+
+            <a href="/fiche/{{ athlete.id }}/signaler"
+               class="flex items-center gap-3 px-4 py-3 text-sm font-medium text-red-500 hover:bg-red-50 transition-colors border-t border-slate-100">
+                ⚠️ <span>Signaler</span>
+            </a>
+        </div>
+    </div>
+
+    <!-- =========================================
+         Le reste de la fiche est inchangé
+    ========================================= -->
     <div class="fiche-top">
-
-        <!-- =====================================
-             GAUCHE — VISUEL
-        ====================================== -->
+        <!-- GAUCHE — VISUEL -->
         <div class="visual-zone">
-
             {% set uci_num = athlete.uci_id_data.get('number', '') %}
             {% if uci_num %}
             <div class="uci-vertical">UCI · {{ uci_num }}</div>
@@ -561,11 +585,8 @@
             </div>
         </div>
 
-        <!-- =====================================
-             DROITE — CONTENU
-        ====================================== -->
+        <!-- DROITE — CONTENU -->
         <div class="right-zone">
-
             <div class="top-infos">
                 <div class="nation-box">
                     <img src="https://flagcdn.com/w80/{{ athlete.nationalite | lower }}.png"
@@ -629,7 +650,7 @@
         </div>
     </div>
 
-    <!-- FOOTER MÉDIAS — conditionné à la présence de liens -->
+    <!-- FOOTER MÉDIAS -->
     {% set links = athlete.medias.get('links', {}) if athlete.medias is mapping else {} %}
     {% if links %}
     <div class="medias-separator">
@@ -665,6 +686,19 @@
         {% endfor %}
     </div>
     {% endif %}
+</div>
 
-</div><!-- .fiche -->
+<!-- Script pour le menu actions -->
+<script>
+function toggleMenu() {
+    const d = document.getElementById('dropdown-actions');
+    d.classList.toggle('hidden');
+}
+document.addEventListener('click', function(e) {
+    const menu = document.getElementById('menu-actions');
+    if (!menu.contains(e.target)) {
+        document.getElementById('dropdown-actions').classList.add('hidden');
+    }
+});
+</script>
 {% endblock %}
