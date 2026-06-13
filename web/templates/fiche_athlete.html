@@ -519,10 +519,8 @@
                 ✏️ <span>Éditer la fiche</span>
             </div>
             {% endif %}
-
-            {% set owners = athlete.get('owners', []) %}
-            {% set is_claimable = (owners | length == 1 and owners[0] == 'import@fu19.org') %}
-            {% if is_claimable %}
+    
+           {% if is_claimable %}
             <a href="/fiche/{{ athlete.id }}/revendiquer"
                class="flex items-center gap-3 px-4 py-3 text-sm font-medium text-indigo-600 hover:bg-indigo-50 transition-colors border-t border-slate-100">
                 🏷️ <span>Revendiquer cette fiche</span>
