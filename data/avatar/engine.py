@@ -213,9 +213,14 @@ def build_avatar(config: dict) -> Image.Image:
         img = Image.open(tiff_path)
         if canvas is None:
             canvas = Image.new("RGBA", img.size, (0, 0, 0, 0))
-        if layer.get("colorize", False):
-            img = colorize_layer(img, layer["base_color"], layer.get("opacity", 1.0))
-        else:
+         if layer_id == "background" and layer.get("colorize", False):
+            r = int(layer["base_color"][1:3], 16)
+            g = int(layer["base_color"][3:5], 16)
+            b = int(layer["base_color"][5:7], 16)
+            img = Image.new("RGBA", img.size, (r, g, b, 255))
+        elif layer.get("colorize", False):
+            img = colorize_layer(img, 
+        else:layer["base_color"], layer.get("opacity",
             img = img.convert("RGBA")
         print(f"  ✅ {layer_id:16s} → {layer['base_color']}")
         canvas = Image.alpha_composite(canvas, img)
