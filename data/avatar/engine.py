@@ -199,6 +199,7 @@ def colorize_layer(img: Image.Image, target_hex: str, opacity: float = 1.0) -> I
 
 
 # ── Build ──────────────────────────────────────────────────────────────────────
+
 def build_avatar(config: dict) -> Image.Image:
     canvas = None
     for layer_id in config["stack_order"]:
@@ -212,20 +213,24 @@ def build_avatar(config: dict) -> Image.Image:
             continue
         img = Image.open(tiff_path)
         if canvas is None:
-                    canvas = Image.new("RGBA", img.size, (0, 0, 0, 0))
-                if layer_id == "background" and layer.get("colorize", False):
-                    r = int(layer["base_color"][1:3], 16)
-                    g = int(layer["base_color"][3:5], 16)
-                    b = int(layer["base_color"][5:7], 16)
-                    img = Image.new("RGBA", img.size, (r, g, b, 255))
-                elif layer.get("colorize", False):
-                    img = colorize_layer(img, 
-                else:layer["base_color"], layer.get("opacity",
-                    img = img.convert("RGBA")
-                print(f"  ✅ {layer_id:16s} → {layer['base_color']}")
-                canvas = Image.alpha_composite(canvas, img)
-            return canvas
+            canvas = Image.new("RGBA", img.size, (0, 0, 0, 0))
 
+        # Cas particulier du fond : on remplace par une couleur unie
+        if layer_id == "background" and layer.get("colorize", False):
+            # On utilise la couleur de base comme remplissage opaque (ou avec l'opacité)
+            r, g, b = hex_to_rgb(layer["base_color"])
+            r, g, b = int(r * 255), int(g * 255), int(b * 255)
+            opacity = int(layer.get("opacity", 1.0) * 255)
+            img = Image.new("RGBA", img.size, (r, g, b, opacity))
+        elif layer.get("colorize", False):
+            # Colorisation normale pour les autres calques
+            img = colorize_layer(img, layer["base_color"], layer.get("opacity", 1.0))
+        else:
+            img = img.convert("RGBA")
+
+        print(f"  ✅ {layer_id:16s} → {layer['base_color']}")
+        canvas = Image.alpha_composite(canvas, img)
+    return canvas
 
 # ── Config helpers ─────────────────────────────────────────────────────────────
 def load_config(path: Path) -> dict:
