@@ -1,425 +1,430 @@
 {% extends "base.html" %}
 
-{% block title %}Fiches Coureurs — FJC{% endblock %}
+{% block title %}Kids Riders Online — fU19{% endblock %}
+
+{% block extra_head %}
+<meta name="description" content="La référence mondiale des jeunes cyclistes juniors. Découvrez {{ stats.total }} coureurs de {{ stats.nb_nations }} nations sur fU19.">
+<style>
+  /* ── Voyant pulsant ─────────────────────────────────────── */
+  @keyframes pulse-green {
+    0%, 100% { opacity: 1; box-shadow: 0 0 0 0 rgba(34,197,94,0.5); }
+    50%       { opacity: 0.6; box-shadow: 0 0 0 6px rgba(34,197,94,0); }
+  }
+  .voyant {
+    width: 8px; height: 8px;
+    border-radius: 50%;
+    background: #22c55e;
+    animation: pulse-green 2s ease-in-out infinite;
+    flex-shrink: 0;
+  }
+
+  /* ── Texte pulsant footer carte contrôle ───────────────── */
+  @keyframes pulse-text {
+    0%, 100% { opacity: 1; }
+    50%       { opacity: 0.4; }
+  }
+  .pulse-text {
+    animation: pulse-text 2s ease-in-out infinite;
+  }
+
+  /* ── Carte contrôle — effet 3D ──────────────────────────── */
+  .carte-controle {
+    box-shadow:
+      0 1px 0 #e2e8f0,
+      0 2px 0 #cbd5e1,
+      0 3px 0 #94a3b8,
+      0 4px 0 #64748b,
+      0 6px 12px rgba(0,0,0,0.15);
+    transform: translateY(-2px);
+  }
+  .carte-controle:hover {
+    transform: translateY(-3px);
+    box-shadow:
+      0 1px 0 #e2e8f0,
+      0 2px 0 #cbd5e1,
+      0 3px 0 #94a3b8,
+      0 4px 0 #64748b,
+      0 5px 0 #475569,
+      0 8px 16px rgba(0,0,0,0.2);
+  }
+
+  /* ── Fiche highlight dorée ──────────────────────────────── */
+  .fiche-highlight {
+    border: 2px solid #f59e0b;
+    box-shadow: 0 0 0 1px #fbbf24, 0 4px 16px rgba(245,158,11,0.2);
+  }
+  .fiche-highlight::before {
+    content: 'HIGHLIGHT';
+    position: absolute;
+    top: 6px; left: 6px;
+    background: #f59e0b;
+    color: white;
+    font-size: 8px;
+    font-weight: 800;
+    letter-spacing: 1px;
+    padding: 2px 6px;
+    border-radius: 4px;
+    z-index: 10;
+  }
+
+  /* ── Dropdown nations / générations ────────────────────── */
+  .ctrl-dropdown {
+    position: absolute;
+    top: 100%;
+    left: 0;
+    min-width: 160px;
+    background: white;
+    border: 1px solid #e2e8f0;
+    border-radius: 10px;
+    box-shadow: 0 8px 24px rgba(0,0,0,0.12);
+    z-index: 100;
+    padding: 4px 0;
+    max-height: 200px;
+    overflow-y: auto;
+  }
+  .ctrl-dropdown a {
+    display: block;
+    padding: 6px 14px;
+    font-size: 11px;
+    font-weight: 600;
+    color: #475569;
+    text-decoration: none;
+    white-space: nowrap;
+  }
+  .ctrl-dropdown a:hover {
+    background: #f8fafc;
+    color: #1e293b;
+  }
+
+  /* ── Asset card ─────────────────────────────────────────── */
+  .asset-card {
+    border: none;
+    background: white;
+    overflow: hidden;
+  }
+  .asset-card img, .asset-card video {
+    width: 100%; height: 100%;
+    object-fit: cover;
+  }
+</style>
+{% endblock %}
 
 {% block content %}
 
-<div class="flex gap-6 items-start">
+<!-- ============================================================
+     GRILLE PRINCIPALE — pleine largeur, 5 colonnes
+============================================================ -->
+<div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4" id="fiches-grid">
 
-  <!-- ============================================================
-       SIDEBAR GAUCHE
-  ============================================================ -->
-  <aside class="w-52 shrink-0 sticky top-24 flex flex-col gap-4">
+  <!-- ================================================================
+       LIGNE 1 FIXE — Carte Contrôle + Créer + 3 Assets
+  ================================================================ -->
 
-    <!-- Stats macro -->
-    <div class="rounded-xl border border-slate-200 bg-white shadow-sm p-4">
-      <p class="text-xs font-bold uppercase tracking-widest text-slate-400 mb-3">Kids Riders Online</p>
-      <div class="space-y-2">
-        <div class="flex justify-between items-center">
-          <span class="text-xs text-slate-500">Total</span>
-          <span class="font-black text-slate-900 text-lg font-mono">{{ athletes | length }}</span>
-        </div>
-        <div class="flex justify-between items-center">
-          <span class="text-xs text-slate-500">🚵 Garçons</span>
-          <span class="font-bold text-slate-700 font-mono">{{ stats.nb_M }}</span>
-        </div>
-        <div class="flex justify-between items-center">
-          <span class="text-xs text-slate-500">🚵‍♀️ Filles</span>
-          <span class="font-bold text-slate-700 font-mono">{{ stats.nb_F }}</span>
-        </div>
-        <div class="flex justify-between items-center">
-          <span class="text-xs text-slate-500">🌍 Nations</span>
-          <span class="font-bold text-slate-700 font-mono">{{ stats.nb_nations }}</span>
-        </div>
-        <div class="flex justify-between items-center">
-          <span class="text-xs text-slate-500">✅ Certifiées</span>
-          <span class="font-bold text-green-600 font-mono">{{ stats.nb_certified }}</span>
-        </div>
+  <!-- ── CARTE DE CONTRÔLE ─────────────────────────────────────────── -->
+  <div class="carte-controle rounded-xl border border-slate-200 bg-white overflow-hidden
+              transition-all duration-200 relative"
+       style="aspect-ratio: 3/4; display: flex; flex-direction: column;">
+
+    <!-- Header -->
+    <div class="px-4 pt-4 pb-2 border-b border-slate-100">
+      <div class="flex items-center gap-2 mb-1">
+        <div class="voyant"></div>
+        <span class="text-[10px] font-black uppercase tracking-widest text-slate-700">
+          Kids Riders Online
+        </span>
       </div>
-    </div>
-
-    <!-- Recherche -->
-    <div class="rounded-xl border border-slate-200 bg-white shadow-sm p-4">
-      <p class="text-xs font-bold uppercase tracking-widest text-slate-400 mb-2">Recherche</p>
-      <input id="search-input"
-             type="text"
-             placeholder="Nom ou prénom…"
-             oninput="applyAll()"
-             class="w-full rounded-lg border border-slate-200 px-3 py-1.5 text-xs text-slate-700 placeholder-slate-300 focus:border-indigo-400 focus:outline-none focus:ring-1 focus:ring-indigo-400">
-    </div>
-
-    <!-- Tri -->
-    <div class="rounded-xl border border-slate-200 bg-white shadow-sm p-4">
-      <p class="text-xs font-bold uppercase tracking-widest text-slate-400 mb-3">Trier par</p>
-      <div class="space-y-1.5">
-
-        <button onclick="setSort('score')"
-                data-sort="score"
-                class="sort-btn w-full flex items-center justify-between rounded-lg border px-3 py-2 text-xs font-semibold transition-colors
-                       border-indigo-300 bg-indigo-50 text-indigo-700">
-          <span>📊 Données</span>
-          <span class="sort-icon text-slate-400" data-sort="score">↓</span>
-        </button>
-
-        <button onclick="setSort('alpha')"
-                data-sort="alpha"
-                class="sort-btn w-full flex items-center justify-between rounded-lg border px-3 py-2 text-xs font-semibold transition-colors
-                       border-slate-200 text-slate-600 hover:bg-slate-50">
-          <span>🔤 Alphabétique</span>
-          <span class="sort-icon text-slate-400" data-sort="alpha">↓</span>
-        </button>
-
-        <button onclick="setSort('age')"
-                data-sort="age"
-                class="sort-btn w-full flex items-center justify-between rounded-lg border px-3 py-2 text-xs font-semibold transition-colors
-                       border-slate-200 text-slate-600 hover:bg-slate-50">
-          <span>🎂 Âge</span>
-          <span class="sort-icon text-slate-400" data-sort="age">↓</span>
-        </button>
-
-      </div>
-    </div>
-
-    <!-- Filtres -->
-    <div class="rounded-xl border border-slate-200 bg-white shadow-sm p-4">
-      <p class="text-xs font-bold uppercase tracking-widest text-slate-400 mb-3">Filtrer</p>
-
-      <!-- Sexe -->
-      <div class="mb-4">
-        <p class="text-xs text-slate-400 mb-1.5">Sexe</p>
-        <div class="flex gap-1.5">
-          <button onclick="setFilter('sexe', 'tous')"
-                  data-filter="sexe" data-value="tous"
-                  class="filter-btn active flex-1 rounded-lg border border-indigo-300 bg-indigo-50 py-1.5 text-xs font-semibold text-indigo-700 transition-colors">
-            Tous
-          </button>
-          <button onclick="setFilter('sexe', 'M')"
-                  data-filter="sexe" data-value="M"
-                  class="filter-btn flex-1 rounded-lg border border-slate-200 py-1.5 text-xs font-semibold text-slate-600 hover:bg-slate-50 transition-colors">
-            M
-          </button>
-          <button onclick="setFilter('sexe', 'F')"
-                  data-filter="sexe" data-value="F"
-                  class="filter-btn flex-1 rounded-lg border border-slate-200 py-1.5 text-xs font-semibold text-slate-600 hover:bg-slate-50 transition-colors">
-            F
-          </button>
-        </div>
-      </div>
-
-      <!-- Année Junior -->
-      <div class="mb-4">
-        <p class="text-xs text-slate-400 mb-1.5">Année Junior</p>
-        <select onchange="setFilter('year', this.value)"
-                id="filter-year"
-                class="w-full rounded-lg border border-slate-200 px-3 py-1.5 text-xs text-slate-600 focus:border-indigo-400 focus:outline-none">
-          <option value="tous">Toutes</option>
-          {% for year in stats.years %}
-            <option value="{{ year }}">{{ year }}</option>
-          {% endfor %}
-        </select>
-      </div>
-
-      <!-- Nation -->
-      <div class="mb-4">
-        <p class="text-xs text-slate-400 mb-1.5">Nation</p>
-        <select onchange="setFilter('nation', this.value)"
-                id="filter-nation"
-                class="w-full rounded-lg border border-slate-200 px-3 py-1.5 text-xs text-slate-600 focus:border-indigo-400 focus:outline-none">
-          <option value="tous">Toutes</option>
-          {% for nation in stats.nations %}
-            <option value="{{ nation }}">{{ nation }}</option>
-          {% endfor %}
-        </select>
-      </div>
-
-      <!-- Reset -->
-      <button onclick="resetAll()"
-              class="w-full rounded-lg border border-slate-200 py-1.5 text-xs font-semibold text-slate-400 hover:bg-slate-50 transition-colors flex items-center justify-center gap-1.5">
-        ♻️ Réinitialiser
+      <!-- Recherche intégrée -->
+      <input type="text"
+             id="ctrl-search"
+             placeholder="Rechercher…"
+             value="{{ q or '' }}"
+             onkeydown="if(event.key==='Enter'){ window.location='/fiches?q='+encodeURIComponent(this.value.trim()); }"
+             oninput="toggleCtrlSearchBtn(this.value)"
+             class="w-full rounded-md border border-slate-200 px-2 py-1 text-[10px] text-slate-700
+                    placeholder-slate-300 focus:border-indigo-400 focus:outline-none mt-1">
+      <button id="ctrl-search-btn"
+              onclick="window.location='/fiches?q='+encodeURIComponent(document.getElementById('ctrl-search').value.trim())"
+              class="hidden w-full mt-1 rounded-md bg-indigo-600 py-1 text-[10px] font-bold text-white
+                     hover:bg-indigo-700 transition-colors">
+        🔍 Chercher
       </button>
     </div>
 
-    <!-- Compteur -->
-    <p class="text-xs text-center text-slate-400">
-      <span id="visible-count">{{ athletes | length }}</span> fiche(s) affichée(s)
-    </p>
+    <!-- Stats cliquables -->
+    <div class="flex-1 px-4 py-3 space-y-2 text-[11px]">
 
-  </aside>
-
-  <!-- ============================================================
-       ZONE CENTRALE — Grille de cartes
-  ============================================================ -->
-  <div class="flex-1">
-
-    <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4" id="fiches-grid">
-
-      <!-- Carte CRÉER -->
-      <a href="/creer"
-         class="create-card rounded-xl border-2 border-dashed border-indigo-200 bg-indigo-50/60 shadow-sm overflow-hidden transition-all hover:shadow-md hover:border-indigo-400 hover:bg-indigo-50 cursor-pointer group relative">
-        <div class="w-full aspect-[3/4] bg-indigo-100 overflow-hidden">
-          <img src="{{ url_for('static', filename='create_static.png') }}"
-               alt="Créer une fiche"
-               class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300">
-        </div>
-        <div class="px-3 py-2.5 text-center">
-          <p class="text-xs font-light text-indigo-600/80 uppercase tracking-wide leading-none">Envoie tes données</p>
-          <p class="text-xs font-light text-indigo-600/80 uppercase tracking-wide leading-none">dans le futur !</p>
-          <p class="text-sm font-black text-indigo-700 uppercase tracking-tight leading-tight mt-1">Créer une fiche</p>
-        </div>
+      <!-- Garçons -->
+      <a href="/fiches/garcons"
+         class="flex items-center justify-between hover:text-indigo-600 transition-colors group">
+        <span class="font-semibold text-slate-600 group-hover:text-indigo-600">🚵 Garçons</span>
+        <span class="font-black text-slate-900 font-mono">{{ stats.nb_M }}</span>
       </a>
 
-      <!-- Fiches athlètes -->
-      {% for athlete in athletes %}
-      <div class="fiche-card rounded-xl border border-slate-200 bg-white shadow-sm overflow-hidden transition-shadow hover:shadow-md relative group cursor-pointer"
-           data-sexe="{{ athlete.sexe }}"
-           data-year="{{ athlete.junior_horizon }}"
-           data-nation="{{ athlete.nationalite }}"
-           data-nom="{{ athlete.nom | lower }}"
-           data-prenom="{{ athlete.prenom | lower }}"
-           data-dob="{{ athlete.date_naissance }}"
-           data-score="
-             {{ (1 if athlete.avatar_ready else 0)
-              + (athlete.donnees_performance.get('derniers_fichiers_fit', []) | length)
-              + (athlete.palmares | length)
-              + (athlete.medias.get('links', {}) | length) }}"
-           onclick="window.location='/fiche/{{ athlete.id }}'">
+      <!-- Filles -->
+      <a href="/fiches/filles"
+         class="flex items-center justify-between hover:text-indigo-600 transition-colors group">
+        <span class="font-semibold text-slate-600 group-hover:text-indigo-600">🚴‍♀️ Filles</span>
+        <span class="font-black text-slate-900 font-mono">{{ stats.nb_F }}</span>
+      </a>
 
-        {% if athlete.id in user_athlete_ids %}
-        <a href="/fiche/{{ athlete.id }}/edit"
-           onclick="event.stopPropagation()"
-           class="absolute top-2 right-2 z-10 opacity-0 group-hover:opacity-100 transition-opacity bg-white border border-slate-200 rounded-full w-7 h-7 flex items-center justify-center text-slate-400 hover:text-indigo-600 hover:border-indigo-300 shadow-sm text-xs">
-          ✏️
-        </a>
-        {% endif %}
-
-        <div class="w-full aspect-[3/4] bg-slate-100 overflow-hidden">
-          <img src="{{ athlete.avatar_url }}"
-               alt="{{ athlete.prenom }} {{ athlete.nom }}"
-               loading="lazy"
-               onload="this.classList.add('opacity-100')"
-               class="w-full h-full object-cover object-top opacity-0 transition-opacity duration-500
-                      {% if not athlete.avatar_ready %}grayscale opacity-60{% endif %}">
+      <!-- Nations — dropdown -->
+      <div class="relative" id="ctrl-nations-wrap">
+        <button onclick="toggleDropdown('ctrl-nations-dd')"
+                class="w-full flex items-center justify-between hover:text-indigo-600 transition-colors group">
+          <span class="font-semibold text-slate-600 group-hover:text-indigo-600">🌍 Nations</span>
+          <span class="font-black text-slate-900 font-mono">{{ stats.nb_nations }}</span>
+        </button>
+        <div id="ctrl-nations-dd" class="ctrl-dropdown hidden">
+          {% for nation in stats.nations %}
+          <a href="/fiches/nation/{{ nation | lower }}">
+            <img src="https://flagcdn.com/w20/{{ nation | lower }}.png"
+                 class="inline-block w-4 h-3 mr-1.5 rounded-sm align-middle">
+            {{ nation }}
+          </a>
+          {% endfor %}
         </div>
-
-        <div class="px-3 py-2.5">
-          <p class="text-xs font-light text-slate-400 uppercase tracking-wide leading-none">{{ athlete.prenom }}</p>
-          <p class="text-sm font-black text-slate-900 uppercase tracking-tight leading-tight">{{ athlete.nom }}</p>
-          <div class="flex items-center justify-between mt-2">
-            <img src="https://flagcdn.com/w40/{{ athlete.nationalite | lower }}.png"
-                 alt="{{ athlete.nationalite }}"
-                 loading="lazy"
-                 class="h-4 rounded-sm border border-slate-100">
-            <span class="text-xs font-bold text-slate-400 font-mono">U19-{{ athlete.junior_horizon }}</span>
-          </div>
-        </div>
-
       </div>
-      {% endfor %}
+
+      <!-- Générations — dropdown -->
+      <div class="relative" id="ctrl-years-wrap">
+        <button onclick="toggleDropdown('ctrl-years-dd')"
+                class="w-full flex items-center justify-between hover:text-indigo-600 transition-colors group">
+          <span class="font-semibold text-slate-600 group-hover:text-indigo-600">📅 Générations</span>
+          <span class="font-black text-slate-900 font-mono">{{ stats.years | length }}</span>
+        </button>
+        <div id="ctrl-years-dd" class="ctrl-dropdown hidden">
+          {% for year in stats.years %}
+          <a href="/fiches/junior/{{ year }}">Junior {{ year }}</a>
+          {% endfor %}
+        </div>
+      </div>
+
+      <!-- Total -->
+      <a href="/fiches"
+         class="flex items-center justify-between hover:text-indigo-600 transition-colors group pt-1
+                border-t border-slate-100">
+        <span class="font-semibold text-slate-600 group-hover:text-indigo-600">Total</span>
+        <span class="font-black text-lg text-slate-900 font-mono">{{ stats.total }}</span>
+      </a>
 
     </div>
 
-    <div id="no-results" class="hidden mt-12 text-center text-slate-400">
-      <p class="text-sm">Aucune fiche ne correspond à ces critères.</p>
-      <button onclick="resetAll()" class="mt-2 text-xs text-indigo-500 hover:underline">
-        Réinitialiser
-      </button>
+    <!-- Footer pulsant → /fiches/completes -->
+    <a href="/fiches/completes"
+       class="block px-4 py-2.5 border-t border-slate-100 bg-slate-50
+              hover:bg-indigo-50 transition-colors">
+      <span class="pulse-text text-[9px] font-black uppercase tracking-widest text-indigo-500">
+        ⭐ Datas for the future
+      </span>
+    </a>
+
+  </div>
+
+  <!-- ── CARTE CRÉER UNE FICHE ─────────────────────────────────────── -->
+  <a href="/creer"
+     class="rounded-xl border-2 border-dashed border-indigo-200 bg-indigo-50/60 shadow-sm
+            overflow-hidden transition-all hover:shadow-md hover:border-indigo-400
+            hover:bg-indigo-50 cursor-pointer group relative"
+     style="aspect-ratio: 3/4; display: flex; flex-direction: column;">
+    <div class="flex-1 bg-indigo-100 overflow-hidden">
+      <img src="{{ url_for('static', filename='create_static.png') }}"
+           alt="Créer une fiche"
+           class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300">
+    </div>
+    <div class="px-3 py-2.5 text-center">
+      <p class="text-xs font-light text-indigo-600/80 uppercase tracking-wide leading-none">
+        Envoie tes données
+      </p>
+      <p class="text-xs font-light text-indigo-600/80 uppercase tracking-wide leading-none">
+        dans le futur !
+      </p>
+      <p class="text-sm font-black text-indigo-700 uppercase tracking-tight leading-tight mt-1">
+        Créer une fiche
+      </p>
+    </div>
+  </a>
+
+  <!-- ── ASSET A ────────────────────────────────────────────────────── -->
+  <a href="/skilla"
+     class="asset-card rounded-xl shadow-sm overflow-hidden relative cursor-pointer"
+     style="aspect-ratio: 3/4;">
+    {% if asset_a %}
+      {% if asset_a.type == 'video' %}
+      <video autoplay muted loop playsinline class="w-full h-full object-cover">
+        <source src="{{ asset_a.path }}" type="video/{{ asset_a.ext[1:] }}">
+      </video>
+      {% else %}
+      <img src="{{ asset_a.path }}" alt="Asset A" class="w-full h-full object-cover">
+      {% endif %}
+    {% else %}
+    <div class="w-full h-full bg-white"></div>
+    {% endif %}
+  </a>
+
+  <!-- ── ASSET B ────────────────────────────────────────────────────── -->
+  <a href="/skillb"
+     class="asset-card rounded-xl shadow-sm overflow-hidden relative cursor-pointer"
+     style="aspect-ratio: 3/4;">
+    {% if asset_b %}
+      {% if asset_b.type == 'video' %}
+      <video autoplay muted loop playsinline class="w-full h-full object-cover">
+        <source src="{{ asset_b.path }}" type="video/{{ asset_b.ext[1:] }}">
+      </video>
+      {% else %}
+      <img src="{{ asset_b.path }}" alt="Asset B" class="w-full h-full object-cover">
+      {% endif %}
+    {% else %}
+    <div class="w-full h-full bg-white"></div>
+    {% endif %}
+  </a>
+
+  <!-- ── ASSET C ────────────────────────────────────────────────────── -->
+  <a href="/skillc"
+     class="asset-card rounded-xl shadow-sm overflow-hidden relative cursor-pointer"
+     style="aspect-ratio: 3/4;">
+    {% if asset_c %}
+      {% if asset_c.type == 'video' %}
+      <video autoplay muted loop playsinline class="w-full h-full object-cover">
+        <source src="{{ asset_c.path }}" type="video/{{ asset_c.ext[1:] }}">
+      </video>
+      {% else %}
+      <img src="{{ asset_c.path }}" alt="Asset C" class="w-full h-full object-cover">
+      {% endif %}
+    {% else %}
+    <div class="w-full h-full bg-white"></div>
+    {% endif %}
+  </a>
+
+  <!-- ================================================================
+       LIGNE 2 — HIGHLIGHTS (5 fiches dorées)
+  ================================================================ -->
+  {% for athlete in highlights %}
+  <div class="fiche-highlight rounded-xl bg-white overflow-hidden
+              transition-shadow hover:shadow-lg relative group cursor-pointer"
+       onclick="window.location='/fiche/{{ athlete.id }}'">
+
+    {% if athlete.id in user_athlete_ids %}
+    <a href="/fiche/{{ athlete.id }}/edit"
+       onclick="event.stopPropagation()"
+       class="absolute top-2 right-2 z-20 opacity-0 group-hover:opacity-100 transition-opacity
+              bg-white border border-slate-200 rounded-full w-7 h-7 flex items-center justify-center
+              text-slate-400 hover:text-indigo-600 hover:border-indigo-300 shadow-sm text-xs">
+      ✏️
+    </a>
+    {% endif %}
+
+    <div class="w-full aspect-[3/4] bg-slate-100 overflow-hidden">
+      <img src="{{ athlete.avatar_url }}"
+           alt="{{ athlete.prenom }} {{ athlete.nom }}"
+           loading="lazy"
+           onload="this.classList.add('opacity-100')"
+           class="w-full h-full object-cover object-top opacity-0 transition-opacity duration-500
+                  {% if not athlete.avatar_ready %}grayscale opacity-60{% endif %}">
+    </div>
+
+    <div class="px-3 py-2.5">
+      <p class="text-xs font-light text-amber-500 uppercase tracking-wide leading-none">
+        {{ athlete.prenom }}
+      </p>
+      <p class="text-sm font-black text-slate-900 uppercase tracking-tight leading-tight">
+        {{ athlete.nom }}
+      </p>
+      <div class="flex items-center justify-between mt-2">
+        <img src="https://flagcdn.com/w40/{{ athlete.nationalite | lower }}.png"
+             alt="{{ athlete.nationalite }}"
+             loading="lazy"
+             class="h-4 rounded-sm border border-amber-100">
+        <span class="text-xs font-bold text-amber-400 font-mono">
+          U19-{{ athlete.junior_horizon }}
+        </span>
+      </div>
     </div>
 
   </div>
+  {% endfor %}
+
+  <!-- ================================================================
+       LIGNE 3+ — FICHES STANDARD (30 par page)
+  ================================================================ -->
+  {% for athlete in athletes %}
+  <div class="fiche-card rounded-xl border border-slate-200 bg-white shadow-sm overflow-hidden
+              transition-shadow hover:shadow-md relative group cursor-pointer"
+       onclick="window.location='/fiche/{{ athlete.id }}'">
+
+    {% if athlete.id in user_athlete_ids %}
+    <a href="/fiche/{{ athlete.id }}/edit"
+       onclick="event.stopPropagation()"
+       class="absolute top-2 right-2 z-10 opacity-0 group-hover:opacity-100 transition-opacity
+              bg-white border border-slate-200 rounded-full w-7 h-7 flex items-center justify-center
+              text-slate-400 hover:text-indigo-600 hover:border-indigo-300 shadow-sm text-xs">
+      ✏️
+    </a>
+    {% endif %}
+
+    <div class="w-full aspect-[3/4] bg-slate-100 overflow-hidden">
+      <img src="{{ athlete.avatar_url }}"
+           alt="{{ athlete.prenom }} {{ athlete.nom }}"
+           loading="lazy"
+           onload="this.classList.add('opacity-100')"
+           class="w-full h-full object-cover object-top opacity-0 transition-opacity duration-500
+                  {% if not athlete.avatar_ready %}grayscale opacity-60{% endif %}">
+    </div>
+
+    <div class="px-3 py-2.5">
+      <p class="text-xs font-light text-slate-400 uppercase tracking-wide leading-none">
+        {{ athlete.prenom }}
+      </p>
+      <p class="text-sm font-black text-slate-900 uppercase tracking-tight leading-tight">
+        {{ athlete.nom }}
+      </p>
+      <div class="flex items-center justify-between mt-2">
+        <img src="https://flagcdn.com/w40/{{ athlete.nationalite | lower }}.png"
+             alt="{{ athlete.nationalite }}"
+             loading="lazy"
+             class="h-4 rounded-sm border border-slate-100">
+        <span class="text-xs font-bold text-slate-400 font-mono">
+          U19-{{ athlete.junior_horizon }}
+        </span>
+      </div>
+    </div>
+
+  </div>
+  {% endfor %}
+
 </div>
 
-<script>
-// ── État global ────────────────────────────────────────────────────────────────
-const state = {
-  filters: { sexe: 'tous', year: 'tous', nation: 'tous' },
-  sort:    { key: 'score', dir: 'asc' },   // tri par défaut : données décroissant
-};
+<!-- Message si aucun résultat -->
+{% if not athletes and not highlights %}
+<div class="mt-12 text-center text-slate-400">
+  <p class="text-sm">Aucune fiche ne correspond à cette recherche.</p>
+  <a href="/fiches" class="mt-2 inline-block text-xs text-indigo-500 hover:underline">
+    ← Retour à toutes les fiches
+  </a>
+</div>
+{% endif %}
 
-// ── Données des cartes (snapshot DOM au chargement) ───────────────────────────
-const grid    = document.getElementById('fiches-grid');
-const allCards = () => Array.from(grid.querySelectorAll('.fiche-card'));
-
-// ── RECHERCHE ─────────────────────────────────────────────────────────────────
-function matchSearch(card) {
-  const q = document.getElementById('search-input').value.trim().toLowerCase();
-  if (!q) return true;
-  return card.dataset.nom.includes(q) || card.dataset.prenom.includes(q);
-}
-
-// ── FILTRES ───────────────────────────────────────────────────────────────────
-function setFilter(key, value) {
-  state.filters[key] = value;
-
-  if (key === 'sexe') {
-    document.querySelectorAll('[data-filter="sexe"]').forEach(btn => {
-      const active = btn.dataset.value === value;
-      btn.classList.toggle('border-indigo-300', active);
-      btn.classList.toggle('bg-indigo-50',      active);
-      btn.classList.toggle('text-indigo-700',   active);
-      btn.classList.toggle('border-slate-200',  !active);
-      btn.classList.toggle('text-slate-600',    !active);
-    });
-  }
-  applyAll();
-}
-
-function matchFilters(card) {
-  const { sexe, year, nation } = state.filters;
-  return (sexe   === 'tous' || card.dataset.sexe   === sexe)
-      && (year   === 'tous' || card.dataset.year   === year)
-      && (nation === 'tous' || card.dataset.nation === nation);
-}
-
-// ── TRI ───────────────────────────────────────────────────────────────────────
-function setSort(key) {
-  if (state.sort.key === key) {
-    // Même clé → inverser la direction
-    state.sort.dir = state.sort.dir === 'asc' ? 'desc' : 'asc';
-  } else {
-    state.sort.key = key;
-    // Direction par défaut selon le critère
-    state.sort.dir = key === 'alpha' ? 'asc' : 'desc';
-  }
-  updateSortUI();
-  applyAll();
-}
-
-function updateSortUI() {
-  document.querySelectorAll('.sort-btn').forEach(btn => {
-    const active = btn.dataset.sort === state.sort.key;
-    btn.classList.toggle('border-indigo-300', active);
-    btn.classList.toggle('bg-indigo-50',      active);
-    btn.classList.toggle('text-indigo-700',   active);
-    btn.classList.toggle('border-slate-200',  !active);
-    btn.classList.toggle('text-slate-600',    !active);
-    btn.classList.toggle('hover:bg-slate-50', !active);
-  });
-
-  // Flèches direction
-  document.querySelectorAll('.sort-icon').forEach(icon => {
-    if (icon.dataset.sort === state.sort.key) {
-      icon.textContent = state.sort.dir === 'asc' ? '↑' : '↓';
-      icon.classList.replace('text-slate-400', 'text-indigo-500');
-    } else {
-      icon.textContent = '↓';
-      icon.classList.replace('text-indigo-500', 'text-slate-400');
-    }
-  });
-}
-
-function sortCards(cards) {
-  const { key, dir } = state.sort;
-  const mul = dir === 'asc' ? 1 : -1;
-
-  return [...cards].sort((a, b) => {
-    if (key === 'alpha') {
-      // Tri alphabétique sur nom puis prénom
-      const na = (a.dataset.nom + a.dataset.prenom);
-      const nb = (b.dataset.nom + b.dataset.prenom);
-      return mul * na.localeCompare(nb, 'fr');
-    }
-
-    if (key === 'age') {
-      // Tri sur date de naissance réelle (dob YYYY-MM-DD)
-      // desc = plus jeune en premier, asc = plus âgé en premier
-      const da = a.dataset.dob || '0000-00-00';
-      const db_ = b.dataset.dob || '0000-00-00';
-      // desc → les dates les plus récentes (plus jeunes) en premier
-      return mul * db_.localeCompare(da);
-    }
-
-    if (key === 'score') {
-      // Tri par score de complétude des données
-      const sa = parseInt(a.dataset.score) || 0;
-      const sb = parseInt(b.dataset.score) || 0;
-      if (sb !== sa) return mul * (sb - sa);
-      // Égalité → alphabétique croissant
-      return (a.dataset.nom + a.dataset.prenom)
-        .localeCompare(b.dataset.nom + b.dataset.prenom, 'fr');
-    }
-
-    return 0;
-  });
-}
-
-// ── APPLICATION COMBINÉE ──────────────────────────────────────────────────────
-function applyAll() {
-  const cards   = allCards();
-  const visible = [];
-  const hidden  = [];
-
-  cards.forEach(card => {
-    if (matchSearch(card) && matchFilters(card)) visible.push(card);
-    else hidden.push(card);
-  });
-
-  // Tri des cartes visibles
-  const sorted = sortCards(visible);
-
-  // Réinsertion dans le DOM après la carte "créer"
-  const createCard = grid.querySelector('.create-card');
-  hidden.forEach(c => { c.style.display = 'none'; });
-  sorted.forEach(c => {
-    c.style.display = '';
-    grid.appendChild(c);   // déplace à la fin → ordre trié
-  });
-
-  // Remettre la carte créer en première position
-  grid.insertBefore(createCard, grid.firstChild);
-
-  document.getElementById('visible-count').textContent = visible.length;
-  document.getElementById('no-results').classList.toggle('hidden', visible.length > 0);
-}
-
-// ── RESET GLOBAL ─────────────────────────────────────────────────────────────
-function resetAll() {
-  // Filtres
-  state.filters = { sexe: 'tous', year: 'tous', nation: 'tous' };
-  document.getElementById('search-input').value = '';
-  document.getElementById('filter-year').value   = 'tous';
-  document.getElementById('filter-nation').value = 'tous';
-
-  // Boutons sexe
-  document.querySelectorAll('[data-filter="sexe"]').forEach(btn => {
-    const isTous = btn.dataset.value === 'tous';
-    btn.classList.toggle('border-indigo-300', isTous);
-    btn.classList.toggle('bg-indigo-50',      isTous);
-    btn.classList.toggle('text-indigo-700',   isTous);
-    btn.classList.toggle('border-slate-200',  !isTous);
-    btn.classList.toggle('text-slate-600',    !isTous);
-  });
-
-  // Tri par défaut
-  state.sort = { key: 'score', dir: 'asc' };
-  updateSortUI();
-
-  applyAll();
-}
-
-// ── INIT ──────────────────────────────────────────────────────────────────────
-updateSortUI();
-applyAll();
-</script>
-
-<!-- Pagination -->
+<!-- ============================================================
+     PAGINATION
+============================================================ -->
 {% if total_pages > 1 %}
 <div class="flex items-center justify-center gap-2 mt-8">
 
   {% if page > 1 %}
-  <a href="?page={{ page - 1 }}{% if q %}&q={{ q }}{% endif %}"
-     class="rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm font-medium text-slate-600 hover:bg-slate-50 transition-colors">
+  <a href="/fiches?page={{ page - 1 }}{% if q %}&q={{ q }}{% endif %}"
+     class="rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm font-medium
+            text-slate-600 hover:bg-slate-50 transition-colors">
     ← Précédent
   </a>
   {% endif %}
 
   {% for p in range(1, total_pages + 1) %}
     {% if p == page %}
-    <span class="rounded-lg border border-indigo-300 bg-indigo-50 px-3 py-2 text-sm font-bold text-indigo-700">
-      {{ p }}
-    </span>
+    <span class="rounded-lg border border-indigo-300 bg-indigo-50 px-3 py-2
+                 text-sm font-bold text-indigo-700">{{ p }}</span>
     {% elif p == 1 or p == total_pages or (p >= page - 2 and p <= page + 2) %}
-    <a href="?page={{ p }}{% if q %}&q={{ q }}{% endif %}"
-       class="rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm font-medium text-slate-600 hover:bg-slate-50 transition-colors">
+    <a href="/fiches?page={{ p }}{% if q %}&q={{ q }}{% endif %}"
+       class="rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm font-medium
+              text-slate-600 hover:bg-slate-50 transition-colors">
       {{ p }}
     </a>
     {% elif p == page - 3 or p == page + 3 %}
@@ -428,16 +433,57 @@ applyAll();
   {% endfor %}
 
   {% if page < total_pages %}
-  <a href="?page={{ page + 1 }}{% if q %}&q={{ q }}{% endif %}"
-     class="rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm font-medium text-slate-600 hover:bg-slate-50 transition-colors">
+  <a href="/fiches?page={{ page + 1 }}{% if q %}&q={{ q }}{% endif %}"
+     class="rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm font-medium
+            text-slate-600 hover:bg-slate-50 transition-colors">
     Suivant →
   </a>
   {% endif %}
 
 </div>
 <p class="text-center text-xs text-slate-400 mt-3">
-  Page {{ page }} / {{ total_pages }} — {{ total }} coureurs
+  Page {{ page }} / {{ total_pages }} — {{ total }} coureur{{ 's' if total > 1 else '' }}
 </p>
 {% endif %}
+
+<!-- ============================================================
+     JAVASCRIPT — Dropdowns + recherche
+============================================================ -->
+<script>
+// ── Dropdowns carte contrôle ───────────────────────────────────────────────
+function toggleDropdown(id) {
+  const dd = document.getElementById(id);
+  // Ferme tous les autres dropdowns
+  document.querySelectorAll('.ctrl-dropdown').forEach(el => {
+    if (el.id !== id) el.classList.add('hidden');
+  });
+  dd.classList.toggle('hidden');
+}
+
+// Clic hors dropdown → fermer
+document.addEventListener('click', function(e) {
+  const wraps = document.querySelectorAll('[id$="-wrap"]');
+  wraps.forEach(wrap => {
+    if (!wrap.contains(e.target)) {
+      const dd = wrap.querySelector('.ctrl-dropdown');
+      if (dd) dd.classList.add('hidden');
+    }
+  });
+});
+
+// ── Bouton recherche — apparaît dès qu'on tape ─────────────────────────────
+function toggleCtrlSearchBtn(val) {
+  const btn = document.getElementById('ctrl-search-btn');
+  btn.classList.toggle('hidden', val.trim().length === 0);
+}
+
+// Init : si une recherche est active, afficher le bouton
+(function() {
+  const inp = document.getElementById('ctrl-search');
+  if (inp && inp.value.trim().length > 0) {
+    toggleCtrlSearchBtn(inp.value);
+  }
+})();
+</script>
 
 {% endblock %}
