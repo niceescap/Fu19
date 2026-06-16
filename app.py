@@ -617,37 +617,46 @@ def sort_athletes_server(athletes: list, sort_key: str = "alpha") -> list:
 # UTILITAIRE — Highlights (stub — sera remplacé par tailer daemon)
 # À ajouter après sort_athletes_server()
 # ------------------------------------------------------------------------------
-
+FAVORITE_HIGHLIGHT_IDS = ["fjc_ath_260607_scap_dfc8", "fjc_ath_260615_klei_429b"]
 def get_highlight_ids(db, n: int = 5) -> list:
     """
-    Retourne les n athlete_id des fiches les plus récemment actives.
-
-    STUB ACTUEL : retourne les n fiches avec avatar + au moins 1 média,
-    triées aléatoirement. Ce stub sera remplacé par la lecture des logs
-    tailer quand le daemon /surveillance sera opérationnel.
-
-    La signature de cette fonction restera identique après le remplacement,
-    ce qui permet de ne pas modifier le reste du code.
+    Retourne les n athlete_id des fiches à mettre en avant.
+    Combine des favoris manuels (FAVORITE_HIGHLIGHT_IDS) avec
+    une sélection aléatoire parmi les fiches actives (avatar + médias).
     """
-    athletes_raw = db.query(Athlete).filter(
-        Athlete.status      == "PUBLIC",
-        Athlete.photo_status == "AVATAR"
-    ).all()
+    # 1. Récupérer les fiches favorites (vérification qu'elles sont PUBLIQUES)
+    favorites = []
+    for fid in FAVORITE_HIGHLIGHT_IDS:
+        ath = db.query(Athlete).filter(
+            Athlete.id == fid,
+            Athlete.status == "PUBLIC"
+        ).first()
+        if ath:
+            favorites.append(fid)
 
-    # Filtre : au moins 1 lien média (fiche "active")
-    candidates = [
-        a for a in athletes_raw
-        if a.medias and a.medias.get("links")
-    ]
+    # 2. Compléter avec une sélection aléatoire jusqu'à n
+    remaining = n - len(favorites)
+    if remaining > 0:
+        athletes_raw = db.query(Athlete).filter(
+            Athlete.status == "PUBLIC",
+            Athlete.photo_status == "AVATAR"
+        ).all()
 
-    if not candidates:
-        # Fallback : n'importe quelles fiches avec avatar
-        candidates = athletes_raw
+        candidates = [
+            a for a in athletes_raw
+            if a.medias and a.medias.get("links")
+        ]
+        if not candidates:
+            candidates = athletes_raw
 
-    # Sélection aléatoire parmi les candidats (stub — tailer donnera un vrai ordre)
-    sample = _random.sample(candidates, min(n, len(candidates)))
-    return [a.id for a in sample]
+        # Exclure les favorites déjà retenues
+        candidates = [a for a in candidates if a.id not in favorites]
 
+        if candidates:
+            sample = _random.sample(candidates, min(remaining, len(candidates)))
+            favorites += [a.id for a in sample]
+
+    return favorites
 
 
 #--fin modif commit fiche_list----------
