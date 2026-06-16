@@ -145,7 +145,7 @@ def serve_asset(filename):
     if stem not in allowed_names or ext.lower() not in allowed_exts:
         return "Fichier non autorisé", 403
 
-    asset_path = BASE_DIR / "data" / "asset" / safe
+    asset_path = BASE_DIR / "data" / safe
     if not asset_path.exists():
         return "Fichier introuvable", 404
 
@@ -564,7 +564,7 @@ def detect_asset(name: str) -> dict | None:
     Cherche un fichier asset_a / asset_b / asset_c dans /data/asset/.
     ...
     """
-    asset_dir = BASE_DIR / "data" / "asset"
+    asset_dir = BASE_DIR / "data" 
 
     image_exts = [".jpg", ".jpeg", ".png", ".webp", ".gif"]
     video_exts = [".mp4", ".webm"]
