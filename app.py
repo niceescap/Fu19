@@ -617,7 +617,7 @@ def sort_athletes_server(athletes: list, sort_key: str = "alpha") -> list:
 # UTILITAIRE — Highlights (stub — sera remplacé par tailer daemon)
 # À ajouter après sort_athletes_server()
 # ------------------------------------------------------------------------------
-FAVORITE_HIGHLIGHT_IDS = ["fjc_ath_260607_scap_dfc8", "fjc_ath_260615_klei_429b"]
+FAVORITE_HIGHLIGHT_IDS = ["fjc_ath_260607_scap_dfc8", "fjc_ath_260615_klei_429b", "fjc_ath_260615_vuls_56e5", "fjc_ath_260615_nort_d98c", "fjc_ath_260615_damb_da99" ]
 def get_highlight_ids(db, n: int = 5) -> list:
     """
     Retourne les n athlete_id des fiches à mettre en avant.
