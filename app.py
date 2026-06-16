@@ -71,7 +71,27 @@ def build_stats(athletes: list) -> dict:
         "nations":      nations,
         "years":        years,
     }
+# ==============================================================================
+# UTILITAIRE — Score de complétude (à ajouter dans la section UTILITAIRES)
+# Après la fonction build_stats()
+# ==============================================================================
 
+def compute_score(athlete: dict) -> int:
+    """
+    Calcule le score de complétude d'une fiche.
+    Utilisé pour le tri et les collections /fiches/completes.
+        avatar personnalisé  → +1
+        fichiers FIT         → +1 par fichier
+        lignes palmarès      → +1 par ligne
+        liens médias         → +1 par lien
+    """
+    score = 0
+    if athlete.get("avatar_ready"):
+        score += 1
+    score += len(athlete.get("donnees_performance", {}).get("derniers_fichiers_fit", []))
+    score += len(athlete.get("palmares", []))
+    score += len(athlete.get("medias", {}).get("links", {}))
+    return score
 
 def get_athlete_or_404(db, athlete_id: str):
     """Récupère un athlète ou flash + redirect si introuvable."""
@@ -109,28 +129,44 @@ def serve_profile_metrics(athlete_id, filename):
 def index():
     return redirect(url_for("fiches_list"))
 
+
 @app.route("/fiches")
 def fiches_list():
     db = SessionLocal()
     try:
-        athletes_raw     = db.query(Athlete).filter(Athlete.status == "PUBLIC").all()
-        athletes         = [athlete_to_dict(a) for a in athletes_raw]
-        stats            = build_stats(athletes)
+        page     = request.args.get("page", 1, type=int)
+        q        = request.args.get("q", "").strip().lower()
+        per_page = 60
+
+        query = db.query(Athlete).filter(Athlete.status == "PUBLIC")
+
+        # Recherche serveur sur nom + prénom
+        if q:
+            query = query.filter(
+                (Athlete.nom.ilike(f"%{q}%")) |
+                (Athlete.prenom.ilike(f"%{q}%"))
+            )
+
+        total        = query.count()
+        athletes_raw = query.offset((page - 1) * per_page).limit(per_page).all()
+        athletes     = [athlete_to_dict(a) for a in athletes_raw]
+        total_pages  = (total + per_page - 1) // per_page
+
+        # Stats calculées sur TOUS les athlètes publics (pas seulement la page)
+        all_raw  = db.query(Athlete).filter(Athlete.status == "PUBLIC").all()
+        all_dict = [athlete_to_dict(a) for a in all_raw]
+        stats    = build_stats(all_dict)
+
         user_email       = session.get("user_email")
-        
         user_athlete_ids = []
         if user_email:
             user_email_clean = user_email.strip().lower()
-            
-            # 👑 Si c'est l'admin suprême, il possède TOUTES les fiches
             if user_email_clean in ADMIN_EMAILS:
                 user_athlete_ids = [a["id"] for a in athletes]
             else:
-                # Sinon, parcours classique pour les utilisateurs normaux
                 user_data = get_user_dashboard_data(db, user_email_clean)
                 if user_data and user_data.athletes:
                     user_athlete_ids = [a.id for a in user_data.athletes]
-                
     finally:
         db.close()
 
@@ -138,8 +174,234 @@ def fiches_list():
                            athletes=athletes,
                            stats=stats,
                            user_athlete_ids=user_athlete_ids,
-                           current_user_email=user_email)
+                           current_user_email=user_email,
+                           page=page,
+                           total_pages=total_pages,
+                           total=total,
+                           q=q)
 
+
+# ==============================================================================
+# ROUTES — COLLECTIONS PARTAGEABLES
+# À ajouter après fiches_list()
+# ==============================================================================
+
+@app.route("/fiches/nation/<code>")
+def fiches_nation(code):
+    """Collection par nation — /fiches/nation/fr, /fiches/nation/be ..."""
+    code_upper = code.upper()
+    page       = request.args.get("page", 1, type=int)
+    per_page   = 60
+
+    db = SessionLocal()
+    try:
+        query        = db.query(Athlete).filter(
+            Athlete.status == "PUBLIC",
+            Athlete.nationalite == code_upper
+        )
+        total        = query.count()
+        athletes_raw = query.offset((page - 1) * per_page).limit(per_page).all()
+        athletes     = [athlete_to_dict(a) for a in athletes_raw]
+        total_pages  = (total + per_page - 1) // per_page
+
+        user_email       = session.get("user_email")
+        user_athlete_ids = _get_user_athlete_ids(db, user_email, athletes)
+    finally:
+        db.close()
+
+    # Noms de nations courants pour le titre SEO
+    nation_names = {
+        "FR": "France", "BE": "Belgique", "NL": "Pays-Bas",
+        "GB": "Grande-Bretagne", "DE": "Allemagne", "ES": "Espagne",
+        "IT": "Italie", "PT": "Portugal", "CH": "Suisse",
+        "DK": "Danemark", "SE": "Suède", "NO": "Norvège",
+        "PL": "Pologne", "CZ": "République Tchèque", "SK": "Slovaquie",
+        "AT": "Autriche", "HU": "Hongrie", "RO": "Roumanie",
+        "HR": "Croatie", "SI": "Slovénie", "LU": "Luxembourg",
+        "IE": "Irlande", "AU": "Australie", "NZ": "Nouvelle-Zélande",
+        "US": "États-Unis", "CA": "Canada", "JP": "Japon",
+        "HK": "Hong Kong", "CN": "Chine", "ZA": "Afrique du Sud",
+    }
+    nation_label = nation_names.get(code_upper, code_upper)
+
+    return render_template("fiches_collection.html",
+                           athletes=athletes,
+                           user_athlete_ids=user_athlete_ids,
+                           current_user_email=user_email,
+                           page=page,
+                           total_pages=total_pages,
+                           total=total,
+                           collection_id="nation",
+                           collection_code=code_upper,
+                           titre=f"Coureurs {nation_label}",
+                           description=f"Découvrez tous les coureurs juniors {nation_label} référencés sur fU19.",
+                           emoji="🌍",
+                           url_base=f"/fiches/nation/{code}")
+
+
+@app.route("/fiches/filles")
+def fiches_filles():
+    """Collection cyclistes féminines."""
+    page     = request.args.get("page", 1, type=int)
+    per_page = 60
+
+    db = SessionLocal()
+    try:
+        query        = db.query(Athlete).filter(
+            Athlete.status == "PUBLIC",
+            Athlete.sexe == "F"
+        )
+        total        = query.count()
+        athletes_raw = query.offset((page - 1) * per_page).limit(per_page).all()
+        athletes     = [athlete_to_dict(a) for a in athletes_raw]
+        total_pages  = (total + per_page - 1) // per_page
+
+        user_email       = session.get("user_email")
+        user_athlete_ids = _get_user_athlete_ids(db, user_email, athletes)
+    finally:
+        db.close()
+
+    return render_template("fiches_collection.html",
+                           athletes=athletes,
+                           user_athlete_ids=user_athlete_ids,
+                           current_user_email=user_email,
+                           page=page,
+                           total_pages=total_pages,
+                           total=total,
+                           collection_id="filles",
+                           titre="Cyclistes Féminines U19",
+                           description="Toutes les jeunes cyclistes féminines référencées sur fU19.",
+                           emoji="🚴‍♀️",
+                           url_base="/fiches/filles")
+
+
+@app.route("/fiches/garcons")
+def fiches_garcons():
+    """Collection cyclistes masculins."""
+    page     = request.args.get("page", 1, type=int)
+    per_page = 60
+
+    db = SessionLocal()
+    try:
+        query        = db.query(Athlete).filter(
+            Athlete.status == "PUBLIC",
+            Athlete.sexe == "M"
+        )
+        total        = query.count()
+        athletes_raw = query.offset((page - 1) * per_page).limit(per_page).all()
+        athletes     = [athlete_to_dict(a) for a in athletes_raw]
+        total_pages  = (total + per_page - 1) // per_page
+
+        user_email       = session.get("user_email")
+        user_athlete_ids = _get_user_athlete_ids(db, user_email, athletes)
+    finally:
+        db.close()
+
+    return render_template("fiches_collection.html",
+                           athletes=athletes,
+                           user_athlete_ids=user_athlete_ids,
+                           current_user_email=user_email,
+                           page=page,
+                           total_pages=total_pages,
+                           total=total,
+                           collection_id="garcons",
+                           titre="Cyclistes Masculins U19",
+                           description="Tous les jeunes cyclistes masculins référencés sur fU19.",
+                           emoji="🚵",
+                           url_base="/fiches/garcons")
+
+
+@app.route("/fiches/completes")
+def fiches_completes():
+    """Collection des profils les plus complets (score de complétude décroissant)."""
+    page     = request.args.get("page", 1, type=int)
+    per_page = 60
+
+    db = SessionLocal()
+    try:
+        athletes_raw = db.query(Athlete).filter(Athlete.status == "PUBLIC").all()
+        athletes     = [athlete_to_dict(a) for a in athletes_raw]
+
+        # Tri par score décroissant côté Python (score non matérialisé en BDD)
+        athletes_scored = sorted(
+            athletes,
+            key=lambda a: compute_score(a),
+            reverse=True
+        )
+
+        total       = len(athletes_scored)
+        total_pages = (total + per_page - 1) // per_page
+        start       = (page - 1) * per_page
+        athletes    = athletes_scored[start:start + per_page]
+
+        user_email       = session.get("user_email")
+        user_athlete_ids = _get_user_athlete_ids(db, user_email, athletes)
+    finally:
+        db.close()
+
+    return render_template("fiches_collection.html",
+                           athletes=athletes,
+                           user_athlete_ids=user_athlete_ids,
+                           current_user_email=user_email,
+                           page=page,
+                           total_pages=total_pages,
+                           total=total,
+                           collection_id="completes",
+                           titre="Profils les plus complets",
+                           description="Les fiches les mieux documentées sur fU19 — avatar, métriques, palmarès et médias.",
+                           emoji="⭐",
+                           url_base="/fiches/completes")
+
+
+@app.route("/fiches/decouverte")
+def fiches_decouverte():
+    """Sélection aléatoire de profils — renouvelée à chaque visite."""
+    import random as _random
+
+    db = SessionLocal()
+    try:
+        athletes_raw = db.query(Athlete).filter(Athlete.status == "PUBLIC").all()
+        athletes_all = [athlete_to_dict(a) for a in athletes_raw]
+
+        # Sélection aléatoire de 60 profils max
+        sample_size = min(60, len(athletes_all))
+        athletes    = _random.sample(athletes_all, sample_size)
+
+        user_email       = session.get("user_email")
+        user_athlete_ids = _get_user_athlete_ids(db, user_email, athletes)
+    finally:
+        db.close()
+
+    return render_template("fiches_collection.html",
+                           athletes=athletes,
+                           user_athlete_ids=user_athlete_ids,
+                           current_user_email=user_email,
+                           page=1,
+                           total_pages=1,
+                           total=len(athletes),
+                           collection_id="decouverte",
+                           titre="Découverte du jour",
+                           description="Une sélection aléatoire de jeunes coureurs à découvrir sur fU19.",
+                           emoji="🌍",
+                           url_base="/fiches/decouverte")
+
+# ==============================================================================
+# UTILITAIRE INTERNE — ownership pour les collections
+# ==============================================================================
+
+def _get_user_athlete_ids(db, user_email: str, athletes: list) -> list:
+    """Retourne la liste des athlete_id que l'utilisateur connecté possède."""
+    if not user_email:
+        return []
+    user_email_clean = user_email.strip().lower()
+    if user_email_clean in ADMIN_EMAILS:
+        return [a["id"] for a in athletes]
+    user_data = get_user_dashboard_data(db, user_email_clean)
+    if user_data and user_data.athletes:
+        return [a.id for a in user_data.athletes]
+    return []
+
+#--fin modif commit fiche_list----------
 
 @app.route("/fiche/<athlete_id>")
 def fiche_athlete(athlete_id):
