@@ -8,8 +8,10 @@ if str(BASE_DIR) not in sys.path:
 
 from flask import (
     Flask, render_template, request, redirect,
-    url_for, flash, send_file, session
+    url_for, flash, send_file, session, jsonify
 )
+import os
+import random as _random
 from core.config import (
     SECRET_KEY, TEMPLATES_DIR, STATIC_DIR,
     ALLOWED_PHOTO_EXTENSIONS, ALLOWED_FIT_EXTENSIONS,
@@ -120,6 +122,35 @@ def serve_profile_metrics(athlete_id, filename):
         return send_file(str(path), mimetype="image/png")
     return "Image non trouvée", 404
 
+#--commit du nouveau fiche liste----
+@app.route("/asset/<filename>")
+def serve_asset(filename):
+    from werkzeug.utils import secure_filename
+
+    allowed_names  = {"asset_a", "asset_b", "asset_c"}
+    allowed_exts   = {".jpg", ".jpeg", ".png", ".webp", ".gif", ".mp4", ".webm"}
+    mime_map = {
+        ".jpg":  "image/jpeg",
+        ".jpeg": "image/jpeg",
+        ".png":  "image/png",
+        ".webp": "image/webp",
+        ".gif":  "image/gif",
+        ".mp4":  "video/mp4",
+        ".webm": "video/webm",
+    }
+
+    safe = secure_filename(filename)
+    stem, ext = os.path.splitext(safe)
+
+    if stem not in allowed_names or ext.lower() not in allowed_exts:
+        return "Fichier non autorisé", 403
+
+    asset_path = BASE_DIR / "data" / "asset" / safe
+    if not asset_path.exists():
+        return "Fichier introuvable", 404
+
+    return send_file(str(asset_path), mimetype=mime_map.get(ext.lower(), "application/octet-stream"))
+
 
 # ==============================================================================
 # ROUTES — NAVIGATION
@@ -129,87 +160,140 @@ def serve_profile_metrics(athlete_id, filename):
 def index():
     return redirect(url_for("fiches_list"))
 
+# ==============================================================================
+# ROUTE — /fiches REFACTORISÉE (remplace l'existante)
+# Filtres serveur + tri serveur + pagination 30 + highlights
+# ==============================================================================
 
 @app.route("/fiches")
 def fiches_list():
+    """
+    Page principale — grille universelle avec :
+    - Ligne 1 fixe : carte contrôle + créer + 3 assets
+    - Ligne 2 : 5 highlights dorés (stub tailer)
+    - Ligne 3+ : 30 fiches paginées, filtrées et triées côté serveur
+    """
     db = SessionLocal()
     try:
+        # ── Paramètres GET ────────────────────────────────────────────────────
         page     = request.args.get("page", 1, type=int)
-        q        = request.args.get("q", "").strip().lower()
-        per_page = 60
+        q        = request.args.get("q", "").strip()
+        per_page = 30  # 30 fiches dès la ligne 3
 
+        # ── Requête de base ───────────────────────────────────────────────────
         query = db.query(Athlete).filter(Athlete.status == "PUBLIC")
 
-        # Recherche serveur sur nom + prénom
+        # Recherche texte sur nom + prénom (insensible à la casse)
         if q:
             query = query.filter(
                 (Athlete.nom.ilike(f"%{q}%")) |
                 (Athlete.prenom.ilike(f"%{q}%"))
             )
 
-        total        = query.count()
-        athletes_raw = query.offset((page - 1) * per_page).limit(per_page).all()
-        athletes     = [athlete_to_dict(a) for a in athletes_raw]
-        total_pages  = (total + per_page - 1) // per_page
+        # ── Chargement + tri alphabétique serveur ─────────────────────────────
+        # On charge tout pour trier (SQLite ne supporte pas ORDER BY sur JSON)
+        # Sur PostgreSQL en prod, on pourra passer à .order_by() natif
+        athletes_raw = query.all()
+        athletes_all = [athlete_to_dict(a) for a in athletes_raw]
+        athletes_all = sort_athletes_server(athletes_all, sort_key="alpha")
 
-        # Stats calculées sur TOUS les athlètes publics (pas seulement la page)
-        all_raw  = db.query(Athlete).filter(Athlete.status == "PUBLIC").all()
-        all_dict = [athlete_to_dict(a) for a in all_raw]
-        stats    = build_stats(all_dict)
+        total       = len(athletes_all)
+        total_pages = (total + per_page - 1) // per_page
+        start       = (page - 1) * per_page
+        athletes    = athletes_all[start:start + per_page]
 
+        # ── Stats globales (toujours sur 100% de la base) ─────────────────────
+        # On recalcule sur athletes_all pour avoir les bons totaux
+        # même quand une recherche est active
+        all_for_stats = [athlete_to_dict(a) for a in
+                         db.query(Athlete).filter(Athlete.status == "PUBLIC").all()]
+        stats = build_stats(all_for_stats)
+
+        # ── Highlights — 5 fiches actives (stub tailer) ───────────────────────
+        highlight_ids      = get_highlight_ids(db, n=5)
+        highlights_raw     = [
+            db.query(Athlete).filter(Athlete.id == aid).first()
+            for aid in highlight_ids
+        ]
+        highlights = [athlete_to_dict(a) for a in highlights_raw if a]
+
+        # ── Assets détectés automatiquement ───────────────────────────────────
+        asset_a = detect_asset("asset_a")
+        asset_b = detect_asset("asset_b")
+        asset_c = detect_asset("asset_c")
+
+        # ── Ownership ─────────────────────────────────────────────────────────
         user_email       = session.get("user_email")
-        user_athlete_ids = []
-        if user_email:
-            user_email_clean = user_email.strip().lower()
-            if user_email_clean in ADMIN_EMAILS:
-                user_athlete_ids = [a["id"] for a in athletes]
-            else:
-                user_data = get_user_dashboard_data(db, user_email_clean)
-                if user_data and user_data.athletes:
-                    user_athlete_ids = [a.id for a in user_data.athletes]
+        user_athlete_ids = _get_user_athlete_ids(db, user_email, athletes)
+
     finally:
         db.close()
 
     return render_template("fiches_list.html",
                            athletes=athletes,
+                           highlights=highlights,
                            stats=stats,
                            user_athlete_ids=user_athlete_ids,
                            current_user_email=user_email,
                            page=page,
                            total_pages=total_pages,
                            total=total,
-                           q=q)
+                           q=q,
+                           asset_a=asset_a,
+                           asset_b=asset_b,
+                           asset_c=asset_c)
+
 
 
 # ==============================================================================
 # ROUTES — COLLECTIONS PARTAGEABLES
 # À ajouter après fiches_list()
+# ==============================
+        
+# ==============================================================================
+# ROUTES — COLLECTIONS REFACTORISÉES
+# Toutes avec tri alphabétique serveur sauf /completes
 # ==============================================================================
 
 @app.route("/fiches/nation/<code>")
 def fiches_nation(code):
-    """Collection par nation — /fiches/nation/fr, /fiches/nation/be ..."""
+    """
+    Collection par nation.
+    URL : /fiches/nation/fr, /fiches/nation/be, /fiches/nation/nl ...
+    Le code est normalisé en majuscules pour correspondre à la BDD.
+    """
     code_upper = code.upper()
     page       = request.args.get("page", 1, type=int)
-    per_page   = 60
+    per_page   = 30
 
     db = SessionLocal()
     try:
-        query        = db.query(Athlete).filter(
-            Athlete.status == "PUBLIC",
+        athletes_raw = db.query(Athlete).filter(
+            Athlete.status      == "PUBLIC",
             Athlete.nationalite == code_upper
+        ).all()
+
+        athletes_all = sort_athletes_server(
+            [athlete_to_dict(a) for a in athletes_raw],
+            sort_key="alpha"
         )
-        total        = query.count()
-        athletes_raw = query.offset((page - 1) * per_page).limit(per_page).all()
-        athletes     = [athlete_to_dict(a) for a in athletes_raw]
-        total_pages  = (total + per_page - 1) // per_page
+
+        total       = len(athletes_all)
+        total_pages = (total + per_page - 1) // per_page
+        start       = (page - 1) * per_page
+        athletes    = athletes_all[start:start + per_page]
 
         user_email       = session.get("user_email")
         user_athlete_ids = _get_user_athlete_ids(db, user_email, athletes)
+
+        asset_a = detect_asset("asset_a")
+        asset_b = detect_asset("asset_b")
+        asset_c = detect_asset("asset_c")
+        stats   = build_stats([athlete_to_dict(a) for a in
+                               db.query(Athlete).filter(Athlete.status == "PUBLIC").all()])
     finally:
         db.close()
 
-    # Noms de nations courants pour le titre SEO
     nation_names = {
         "FR": "France", "BE": "Belgique", "NL": "Pays-Bas",
         "GB": "Grande-Bretagne", "DE": "Allemagne", "ES": "Espagne",
@@ -228,36 +312,46 @@ def fiches_nation(code):
                            athletes=athletes,
                            user_athlete_ids=user_athlete_ids,
                            current_user_email=user_email,
-                           page=page,
-                           total_pages=total_pages,
-                           total=total,
+                           stats=stats,
+                           asset_a=asset_a, asset_b=asset_b, asset_c=asset_c,
+                           page=page, total_pages=total_pages, total=total,
                            collection_id="nation",
                            collection_code=code_upper,
                            titre=f"Coureurs {nation_label}",
-                           description=f"Découvrez tous les coureurs juniors {nation_label} référencés sur fU19.",
+                           description=f"Découvrez les {total} jeunes talents {nation_label} référencés sur fU19.",
                            emoji="🌍",
                            url_base=f"/fiches/nation/{code}")
 
 
 @app.route("/fiches/filles")
 def fiches_filles():
-    """Collection cyclistes féminines."""
+    """Collection cyclistes féminines — tri alphabétique."""
     page     = request.args.get("page", 1, type=int)
-    per_page = 60
+    per_page = 30
 
     db = SessionLocal()
     try:
-        query        = db.query(Athlete).filter(
+        athletes_raw = db.query(Athlete).filter(
             Athlete.status == "PUBLIC",
-            Athlete.sexe == "F"
+            Athlete.sexe   == "F"
+        ).all()
+
+        athletes_all = sort_athletes_server(
+            [athlete_to_dict(a) for a in athletes_raw],
+            sort_key="alpha"
         )
-        total        = query.count()
-        athletes_raw = query.offset((page - 1) * per_page).limit(per_page).all()
-        athletes     = [athlete_to_dict(a) for a in athletes_raw]
-        total_pages  = (total + per_page - 1) // per_page
+
+        total       = len(athletes_all)
+        total_pages = (total + per_page - 1) // per_page
+        athletes    = athletes_all[(page-1)*per_page : page*per_page]
 
         user_email       = session.get("user_email")
         user_athlete_ids = _get_user_athlete_ids(db, user_email, athletes)
+        asset_a = detect_asset("asset_a")
+        asset_b = detect_asset("asset_b")
+        asset_c = detect_asset("asset_c")
+        stats   = build_stats([athlete_to_dict(a) for a in
+                               db.query(Athlete).filter(Athlete.status == "PUBLIC").all()])
     finally:
         db.close()
 
@@ -265,35 +359,45 @@ def fiches_filles():
                            athletes=athletes,
                            user_athlete_ids=user_athlete_ids,
                            current_user_email=user_email,
-                           page=page,
-                           total_pages=total_pages,
-                           total=total,
+                           stats=stats,
+                           asset_a=asset_a, asset_b=asset_b, asset_c=asset_c,
+                           page=page, total_pages=total_pages, total=total,
                            collection_id="filles",
                            titre="Cyclistes Féminines U19",
-                           description="Toutes les jeunes cyclistes féminines référencées sur fU19.",
+                           description=f"Découvrez les {total} jeunes cyclistes féminines référencées sur fU19.",
                            emoji="🚴‍♀️",
                            url_base="/fiches/filles")
 
 
 @app.route("/fiches/garcons")
 def fiches_garcons():
-    """Collection cyclistes masculins."""
+    """Collection cyclistes masculins — tri alphabétique."""
     page     = request.args.get("page", 1, type=int)
-    per_page = 60
+    per_page = 30
 
     db = SessionLocal()
     try:
-        query        = db.query(Athlete).filter(
+        athletes_raw = db.query(Athlete).filter(
             Athlete.status == "PUBLIC",
-            Athlete.sexe == "M"
+            Athlete.sexe   == "M"
+        ).all()
+
+        athletes_all = sort_athletes_server(
+            [athlete_to_dict(a) for a in athletes_raw],
+            sort_key="alpha"
         )
-        total        = query.count()
-        athletes_raw = query.offset((page - 1) * per_page).limit(per_page).all()
-        athletes     = [athlete_to_dict(a) for a in athletes_raw]
-        total_pages  = (total + per_page - 1) // per_page
+
+        total       = len(athletes_all)
+        total_pages = (total + per_page - 1) // per_page
+        athletes    = athletes_all[(page-1)*per_page : page*per_page]
 
         user_email       = session.get("user_email")
         user_athlete_ids = _get_user_athlete_ids(db, user_email, athletes)
+        asset_a = detect_asset("asset_a")
+        asset_b = detect_asset("asset_b")
+        asset_c = detect_asset("asset_c")
+        stats   = build_stats([athlete_to_dict(a) for a in
+                               db.query(Athlete).filter(Athlete.status == "PUBLIC").all()])
     finally:
         db.close()
 
@@ -301,41 +405,49 @@ def fiches_garcons():
                            athletes=athletes,
                            user_athlete_ids=user_athlete_ids,
                            current_user_email=user_email,
-                           page=page,
-                           total_pages=total_pages,
-                           total=total,
+                           stats=stats,
+                           asset_a=asset_a, asset_b=asset_b, asset_c=asset_c,
+                           page=page, total_pages=total_pages, total=total,
                            collection_id="garcons",
                            titre="Cyclistes Masculins U19",
-                           description="Tous les jeunes cyclistes masculins référencés sur fU19.",
+                           description=f"Découvrez les {total} jeunes cyclistes masculins référencés sur fU19.",
                            emoji="🚵",
                            url_base="/fiches/garcons")
 
 
-@app.route("/fiches/completes")
-def fiches_completes():
-    """Collection des profils les plus complets (score de complétude décroissant)."""
+@app.route("/fiches/junior/<int:year>")
+def fiches_junior(year):
+    """
+    Collection par génération (année horizon junior).
+    URL : /fiches/junior/2027, /fiches/junior/2028 ...
+    junior_horizon = année_naissance + 17
+    """
     page     = request.args.get("page", 1, type=int)
-    per_page = 60
+    per_page = 30
 
     db = SessionLocal()
     try:
-        athletes_raw = db.query(Athlete).filter(Athlete.status == "PUBLIC").all()
-        athletes     = [athlete_to_dict(a) for a in athletes_raw]
+        athletes_raw = db.query(Athlete).filter(
+            Athlete.status         == "PUBLIC",
+            Athlete.junior_horizon == year
+        ).all()
 
-        # Tri par score décroissant côté Python (score non matérialisé en BDD)
-        athletes_scored = sorted(
-            athletes,
-            key=lambda a: compute_score(a),
-            reverse=True
+        athletes_all = sort_athletes_server(
+            [athlete_to_dict(a) for a in athletes_raw],
+            sort_key="alpha"
         )
 
-        total       = len(athletes_scored)
+        total       = len(athletes_all)
         total_pages = (total + per_page - 1) // per_page
-        start       = (page - 1) * per_page
-        athletes    = athletes_scored[start:start + per_page]
+        athletes    = athletes_all[(page-1)*per_page : page*per_page]
 
         user_email       = session.get("user_email")
         user_athlete_ids = _get_user_athlete_ids(db, user_email, athletes)
+        asset_a = detect_asset("asset_a")
+        asset_b = detect_asset("asset_b")
+        asset_c = detect_asset("asset_c")
+        stats   = build_stats([athlete_to_dict(a) for a in
+                               db.query(Athlete).filter(Athlete.status == "PUBLIC").all()])
     finally:
         db.close()
 
@@ -343,32 +455,79 @@ def fiches_completes():
                            athletes=athletes,
                            user_athlete_ids=user_athlete_ids,
                            current_user_email=user_email,
-                           page=page,
-                           total_pages=total_pages,
-                           total=total,
+                           stats=stats,
+                           asset_a=asset_a, asset_b=asset_b, asset_c=asset_c,
+                           page=page, total_pages=total_pages, total=total,
+                           collection_id="junior",
+                           collection_year=year,
+                           titre=f"Génération Junior {year}",
+                           description=f"Découvrez les {total} coureurs juniors de la génération {year} sur fU19.",
+                           emoji="📅",
+                           url_base=f"/fiches/junior/{year}")
+
+
+@app.route("/fiches/completes")
+def fiches_completes():
+    """
+    Collection des profils les plus complets.
+    Seule collection avec tri par score décroissant (pas alphabétique).
+    """
+    page     = request.args.get("page", 1, type=int)
+    per_page = 30
+
+    db = SessionLocal()
+    try:
+        athletes_raw = db.query(Athlete).filter(Athlete.status == "PUBLIC").all()
+        athletes_all = sort_athletes_server(
+            [athlete_to_dict(a) for a in athletes_raw],
+            sort_key="score"  # Exception : score décroissant
+        )
+
+        total       = len(athletes_all)
+        total_pages = (total + per_page - 1) // per_page
+        athletes    = athletes_all[(page-1)*per_page : page*per_page]
+
+        user_email       = session.get("user_email")
+        user_athlete_ids = _get_user_athlete_ids(db, user_email, athletes)
+        asset_a = detect_asset("asset_a")
+        asset_b = detect_asset("asset_b")
+        asset_c = detect_asset("asset_c")
+        stats   = build_stats([athlete_to_dict(a) for a in athletes_raw])
+    finally:
+        db.close()
+
+    return render_template("fiches_collection.html",
+                           athletes=athletes,
+                           user_athlete_ids=user_athlete_ids,
+                           current_user_email=user_email,
+                           stats=stats,
+                           asset_a=asset_a, asset_b=asset_b, asset_c=asset_c,
+                           page=page, total_pages=total_pages, total=total,
                            collection_id="completes",
                            titre="Profils les plus complets",
-                           description="Les fiches les mieux documentées sur fU19 — avatar, métriques, palmarès et médias.",
+                           description=f"Les {total} fiches les mieux documentées sur fU19.",
                            emoji="⭐",
                            url_base="/fiches/completes")
 
 
 @app.route("/fiches/decouverte")
 def fiches_decouverte():
-    """Sélection aléatoire de profils — renouvelée à chaque visite."""
-    import random as _random
-
+    """
+    Sélection aléatoire — renouvelée à chaque visite.
+    Pas de pagination (60 max, aléatoire).
+    """
     db = SessionLocal()
     try:
         athletes_raw = db.query(Athlete).filter(Athlete.status == "PUBLIC").all()
         athletes_all = [athlete_to_dict(a) for a in athletes_raw]
-
-        # Sélection aléatoire de 60 profils max
-        sample_size = min(60, len(athletes_all))
-        athletes    = _random.sample(athletes_all, sample_size)
+        athletes     = _random.sample(athletes_all, min(60, len(athletes_all)))
 
         user_email       = session.get("user_email")
         user_athlete_ids = _get_user_athlete_ids(db, user_email, athletes)
+        asset_a = detect_asset("asset_a")
+        asset_b = detect_asset("asset_b")
+        asset_c = detect_asset("asset_c")
+        stats   = build_stats([athlete_to_dict(a) for a in athletes_raw])
     finally:
         db.close()
 
@@ -376,15 +535,14 @@ def fiches_decouverte():
                            athletes=athletes,
                            user_athlete_ids=user_athlete_ids,
                            current_user_email=user_email,
-                           page=1,
-                           total_pages=1,
-                           total=len(athletes),
+                           stats=stats,
+                           asset_a=asset_a, asset_b=asset_b, asset_c=asset_c,
+                           page=1, total_pages=1, total=len(athletes),
                            collection_id="decouverte",
                            titre="Découverte du jour",
-                           description="Une sélection aléatoire de jeunes coureurs à découvrir sur fU19.",
+                           description=f"Découvrez {len(athletes)} jeunes coureurs sélectionnés aléatoirement sur fU19.",
                            emoji="🌍",
                            url_base="/fiches/decouverte")
-
 # ==============================================================================
 # UTILITAIRE INTERNE — ownership pour les collections
 # ==============================================================================
@@ -400,6 +558,97 @@ def _get_user_athlete_ids(db, user_email: str, athletes: list) -> list:
     if user_data and user_data.athletes:
         return [a.id for a in user_data.athletes]
     return []
+
+def detect_asset(name: str) -> dict | None:
+    """
+    Cherche un fichier asset_a / asset_b / asset_c dans /data/asset/.
+    ...
+    """
+    asset_dir = BASE_DIR / "data" / "asset"
+
+    image_exts = [".jpg", ".jpeg", ".png", ".webp", ".gif"]
+    video_exts = [".mp4", ".webm"]
+
+    for ext in image_exts + video_exts:
+        candidate = asset_dir / f"{name}{ext}"
+        if candidate.exists():
+            asset_type = "video" if ext in video_exts else "image"
+            return {
+                "path": f"/asset/{name}{ext}",
+                "type": asset_type,
+                "ext":  ext
+            }
+    return None
+
+
+# ------------------------------------------------------------------------------
+# UTILITAIRE — Calcul du tri serveur
+# À ajouter après detect_asset()
+# ------------------------------------------------------------------------------
+
+def sort_athletes_server(athletes: list, sort_key: str = "alpha") -> list:
+    """
+    Trie une liste de dicts athlètes côté serveur.
+
+    sort_key :
+        "alpha"  → alphabétique sur nom puis prénom (défaut universel)
+        "score"  → score de complétude décroissant (collection /completes uniquement)
+        "age"    → date de naissance décroissante (plus jeune en premier)
+    """
+    if sort_key == "score":
+        return sorted(athletes, key=lambda a: compute_score(a), reverse=True)
+
+    if sort_key == "age":
+        # dob format YYYY-MM-DD — tri décroissant = plus jeune en premier
+        return sorted(
+            athletes,
+            key=lambda a: a.get("date_naissance", "0000-00-00"),
+            reverse=True
+        )
+
+    # Défaut : alphabétique sur nom puis prénom
+    return sorted(
+        athletes,
+        key=lambda a: (a.get("nom", ""), a.get("prenom", ""))
+    )
+
+
+# ------------------------------------------------------------------------------
+# UTILITAIRE — Highlights (stub — sera remplacé par tailer daemon)
+# À ajouter après sort_athletes_server()
+# ------------------------------------------------------------------------------
+
+def get_highlight_ids(db, n: int = 5) -> list:
+    """
+    Retourne les n athlete_id des fiches les plus récemment actives.
+
+    STUB ACTUEL : retourne les n fiches avec avatar + au moins 1 média,
+    triées aléatoirement. Ce stub sera remplacé par la lecture des logs
+    tailer quand le daemon /surveillance sera opérationnel.
+
+    La signature de cette fonction restera identique après le remplacement,
+    ce qui permet de ne pas modifier le reste du code.
+    """
+    athletes_raw = db.query(Athlete).filter(
+        Athlete.status      == "PUBLIC",
+        Athlete.photo_status == "AVATAR"
+    ).all()
+
+    # Filtre : au moins 1 lien média (fiche "active")
+    candidates = [
+        a for a in athletes_raw
+        if a.medias and a.medias.get("links")
+    ]
+
+    if not candidates:
+        # Fallback : n'importe quelles fiches avec avatar
+        candidates = athletes_raw
+
+    # Sélection aléatoire parmi les candidats (stub — tailer donnera un vrai ordre)
+    sample = _random.sample(candidates, min(n, len(candidates)))
+    return [a.id for a in sample]
+
+
 
 #--fin modif commit fiche_list----------
 
@@ -1506,6 +1755,56 @@ def fit_delete(athlete_id, filename):
     return redirect(url_for("fiche_edit", athlete_id=athlete_id))
 
 
+# ==============================================================================
+# ROUTES — PAGES SKILL (stubs d'attente)
+# ==============================================================================
+
+@app.route("/skilla")
+def skill_a():
+    return render_template("skill_a.html", current_user_email=session.get("user_email"))
+
+@app.route("/skillb")
+def skill_b():
+    return render_template("skill_b.html", current_user_email=session.get("user_email"))
+
+@app.route("/skillc")
+def skill_c():
+    return render_template("skill_c.html", current_user_email=session.get("user_email"))
+
+
+# ==============================================================================
+# ROUTE — SURVEILLANCE (stub — sera alimenté par tailer daemon)
+# Retourne les 5 derniers athlete_id actifs au format JSON
+# Cette route sera consommée par fiches_list en AJAX après intégration tailer
+# ==============================================================================
+
+@app.route("/surveillance")
+def surveillance():
+    """
+    Stub de surveillance — retourne les 5 fiches les plus actives.
+    Format JSON consommable par le frontend ou d'autres scripts.
+
+    Sera remplacé par lecture des logs tailer quand le daemon sera actif.
+    La signature JSON restera identique pour ne pas modifier les consommateurs.
+    """
+    db = SessionLocal()
+    try:
+        highlight_ids = get_highlight_ids(db, n=5)
+        athletes = []
+        for aid in highlight_ids:
+            ath = db.query(Athlete).filter(Athlete.id == aid).first()
+            if ath:
+                athletes.append({
+                    "id":     ath.id,
+                    "nom":    ath.nom,
+                    "prenom": ath.prenom,
+                    "url":    f"/fiche/{ath.id}"
+                })
+    finally:
+        db.close()
+
+    from flask import jsonify
+    return jsonify({"highlights": athletes})
 # ==============================================================================
 # LANCEMENT
 # ==============================================================================
