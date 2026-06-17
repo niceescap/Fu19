@@ -123,7 +123,7 @@
   <!-- ── CARTE DE CONTRÔLE ─────────────────────────────────────────── -->
   <div class="carte-controle rounded-xl border border-slate-200 bg-white overflow-hidden
               transition-all duration-200 relative"
-       style="aspect-ratio: 3/4; display: flex; flex-direction: column;">
+       style="min-height: 420px; display: flex; flex-direction: column;">
 
     <!-- Header -->
     <div class="px-4 pt-4 pb-2 border-b border-slate-100">
@@ -225,7 +225,7 @@
      class="rounded-xl border-2 border-dashed border-indigo-200 bg-indigo-50/60 shadow-sm
             overflow-hidden transition-all hover:shadow-md hover:border-indigo-400
             hover:bg-indigo-50 cursor-pointer group relative"
-     style="aspect-ratio: 3/4; display: flex; flex-direction: column;">
+     style="min-height: 420px; display: flex; flex-direction: column;">
     <div class="flex-1 bg-indigo-100 overflow-hidden">
       <img src="{{ url_for('static', filename='create_static.png') }}"
            alt="Créer une fiche"
@@ -247,7 +247,7 @@
   <!-- ── ASSET A ────────────────────────────────────────────────────── -->
   <a href="/skilla"
      class="asset-card rounded-xl shadow-sm overflow-hidden relative cursor-pointer"
-     style="aspect-ratio: 3/4;">
+     style="min-height: 420px;">
     {% if asset_a %}
       {% if asset_a.type == 'video' %}
       <video autoplay muted loop playsinline class="w-full h-full object-cover">
@@ -264,7 +264,7 @@
   <!-- ── ASSET B ────────────────────────────────────────────────────── -->
   <a href="/skillb"
      class="asset-card rounded-xl shadow-sm overflow-hidden relative cursor-pointer"
-     style="aspect-ratio: 3/4;">
+     style="min-height: 420px;">
     {% if asset_b %}
       {% if asset_b.type == 'video' %}
       <video autoplay muted loop playsinline class="w-full h-full object-cover">
@@ -281,7 +281,7 @@
   <!-- ── ASSET C ────────────────────────────────────────────────────── -->
   <a href="/skillc"
      class="asset-card rounded-xl shadow-sm overflow-hidden relative cursor-pointer"
-     style="aspect-ratio: 3/4;">
+     style="min-height: 420px;">
     {% if asset_c %}
       {% if asset_c.type == 'video' %}
       <video autoplay muted loop playsinline class="w-full h-full object-cover">
