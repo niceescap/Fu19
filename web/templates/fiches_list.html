@@ -106,10 +106,7 @@
     width: 100%; height: 100%;
     object-fit: cover;
   }
-  /* Forcer l’alignement en bas pour toutes les images d’asset */
-  .asset-card img {
-    object-position: bottom !important;
-  } 
+
 </style>
 {% endblock %}
 
@@ -275,13 +272,9 @@
         <source src="{{ asset_b.path }}" type="video/{{ asset_b.ext[1:] }}">
       </video>
       {% else %}
-      <div class="w-full aspect-[3/4] overflow-hidden">
-        <div style="background-image: url('{{ asset_b.path }}');
-                    background-size: cover;
-                    background-position: bottom center;
-                    width: 100%;
-                    height: 100%;">
-        </div>
+      <div class="w-full aspect-[3/4] overflow-hidden relative">
+        <img src="{{ asset_b.path }}" alt="Asset B"
+             style="position: absolute; bottom: 0; left: 0; width: 100%; height: auto; min-height: 100%;">
       </div>
       {% endif %}
     {% else %}
