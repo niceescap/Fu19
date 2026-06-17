@@ -271,7 +271,7 @@
         <source src="{{ asset_b.path }}" type="video/{{ asset_b.ext[1:] }}">
       </video>
       {% else %}
-      <div class="w-full aspect-[3/4] overflow-hidden"><img src="{{ asset_b.path }}" alt="Asset B" class="w-full h-full object-cover"></div>
+      <div class="w-full aspect-[3/4] overflow-hidden"><img src="{{ asset_b.path }}" alt="Asset B" class="w-full h-full object-cover object-center"></div>
       {% endif %}
     {% else %}
     <div class="w-full h-full bg-white"></div>
@@ -284,7 +284,7 @@
      style="">
     {% if asset_c %}
       {% if asset_c.type == 'video' %}
-      <video autoplay muted loop playsinline class="w-full h-full object-cover">
+      <video autoplay muted loop playsinline class="w-full h-full object-cover object-center">
         <source src="{{ asset_c.path }}" type="video/{{ asset_c.ext[1:] }}">
       </video>
       {% else %}
