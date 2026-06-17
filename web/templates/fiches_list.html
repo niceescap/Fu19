@@ -287,14 +287,14 @@
 
     <div class="absolute inset-0 h-full w-full overflow-hidden bg-white">
 
-      {% if asset_b.type == 'video' %}
+      {% if asset_c.type == 'video' %}
         <video autoplay muted loop playsinline
                class="h-full w-full object-cover object-bottom">
-          <source src="{{ asset_b.path }}" type="video/{{ asset_b.ext[1:] }}">
+          <source src="{{ asset_c.path }}" type="video/{{ asset_c.ext[1:] }}">
         </video>
       {% else %}
         <img src="{{ asset_b.path }}"
-             alt="Asset B"
+             alt="Asset C"
              class="h-full w-full object-cover object-bottom"
              loading="lazy">
       {% endif %}
