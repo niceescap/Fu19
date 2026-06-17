@@ -281,22 +281,30 @@
 {% endif %}
 
   <!-- ── ASSET C ────────────────────────────────────────────────────── -->
+{% if asset_c %}
   <a href="/skillc"
-     class="asset-card rounded-xl shadow-sm overflow-hidden relative cursor-pointer"
-     style="">
-    {% if asset_c %}
-      {% if asset_c.type == 'video' %}
-      <video autoplay muted loop playsinline class="w-full h-full object-cover">
-        <source src="{{ asset_c.path }}" type="video/{{ asset_c.ext[1:] }}">
-      </video>
-      {% else %}
-      <div class="w-full aspect-[3/4] overflow-hidden"><img src="{{ asset_c.path }}" alt="Asset C" class="w-full h-full object-cover object-bottom"></div>
-      {% endif %}
-    {% else %}
-    <div class="w-full h-full bg-white"></div>
-    {% endif %}
-  </a>
+     class="asset-card relative block w-full overflow-hidden rounded-xl shadow-sm">
 
+    <div class="absolute inset-0 h-full w-full overflow-hidden bg-white">
+
+      {% if asset_b.type == 'video' %}
+        <video autoplay muted loop playsinline
+               class="h-full w-full object-cover object-bottom">
+          <source src="{{ asset_b.path }}" type="video/{{ asset_b.ext[1:] }}">
+        </video>
+      {% else %}
+        <img src="{{ asset_b.path }}"
+             alt="Asset B"
+             class="h-full w-full object-cover object-bottom"
+             loading="lazy">
+      {% endif %}
+
+    </div>
+
+  </a>
+{% else %}
+  <div class="w-full aspect-[3/4] overflow-hidden rounded-xl shadow-sm bg-white"></div>
+{% endif %}
   <!-- ================================================================
        LIGNE 2 — HIGHLIGHTS (5 fiches dorées)
   ================================================================ -->
