@@ -255,26 +255,31 @@
   </a>
 
   <!-- ── ASSET B ────────────────────────────────────────────────────── -->
+<!-- ── ASSET B ────────────────────────────────────────────────────── -->
+{% if asset_b %}
+  {% if asset_b.type == 'video' %}
   <a href="/skillb"
-     class="asset-card rounded-xl shadow-sm overflow-hidden relative cursor-pointer"
-     style="">
-    {% if asset_b %}
-      {% if asset_b.type == 'video' %}
-      <video autoplay muted loop playsinline class="w-full h-full object-cover">
-        <source src="{{ asset_b.path }}" type="video/{{ asset_b.ext[1:] }}">
-      </video>
-      {% else %}
-      <div class="w-full aspect-[3/4] overflow-hidden"
-           style="background-image: url('{{ asset_b.path }}');
-                  background-size: cover;
-                  background-position: bottom center;
-                  background-repeat: no-repeat;">
-      </div>
-      {% endif %}
-    {% else %}
-    <div class="w-full h-full bg-white"></div>
-    {% endif %}
- </a>
+     class="asset-card rounded-xl shadow-sm overflow-hidden relative block"
+     style="aspect-ratio: 3/4;">
+    <video autoplay muted loop playsinline class="w-full h-full object-cover">
+      <source src="{{ asset_b.path }}" type="video/{{ asset_b.ext[1:] }}">
+    </video>
+  </a>
+  {% else %}
+  <a href="/skillb"
+     class="asset-card rounded-xl shadow-sm overflow-hidden relative block"
+     style="aspect-ratio: 3/4;
+            background-image: url('{{ asset_b.path }}');
+            background-size: cover;
+            background-position: bottom center;
+            background-repeat: no-repeat;">
+    <!-- Remplissage invisible pour occuper l'espace -->
+    <div class="w-full h-full"></div>
+  </a>
+  {% endif %}
+{% else %}
+<div class="w-full aspect-[3/4] bg-white rounded-xl shadow-sm"></div>
+{% endif %}
 
   <!-- ── ASSET C ────────────────────────────────────────────────────── -->
   <a href="/skillc"
