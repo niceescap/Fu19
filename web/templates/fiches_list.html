@@ -276,7 +276,12 @@
       </video>
       {% else %}
       <div class="w-full aspect-[3/4] overflow-hidden">
-        <img src="{{ asset_b.path }}" alt="Asset B" class="w-full h-full object-cover">
+        <div style="background-image: url('{{ asset_b.path }}');
+                    background-size: cover;
+                    background-position: bottom center;
+                    width: 100%;
+                    height: 100%;">
+        </div>
       </div>
       {% endif %}
     {% else %}
