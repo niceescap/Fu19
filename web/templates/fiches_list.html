@@ -106,6 +106,10 @@
     width: 100%; height: 100%;
     object-fit: cover;
   }
+  /* Forcer l’alignement en bas pour toutes les images d’asset */
+  .asset-card img {
+    object-position: bottom !important;
+  } 
 </style>
 {% endblock %}
 
@@ -271,12 +275,14 @@
         <source src="{{ asset_b.path }}" type="video/{{ asset_b.ext[1:] }}">
       </video>
       {% else %}
-      <div class="w-full aspect-[3/4] overflow-hidden"><img src="{{ asset_b.path }}" alt="Asset B" class="w-full h-full object-cover" style="object-position: bottom;"></div> 
+      <div class="w-full aspect-[3/4] overflow-hidden">
+        <img src="{{ asset_b.path }}" alt="Asset B" class="w-full h-full object-cover">
+      </div>
       {% endif %}
     {% else %}
     <div class="w-full h-full bg-white"></div>
     {% endif %}
-  </a>
+ </a>
 
   <!-- ── ASSET C ────────────────────────────────────────────────────── -->
   <a href="/skillc"
