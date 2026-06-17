@@ -271,7 +271,7 @@
         <source src="{{ asset_b.path }}" type="video/{{ asset_b.ext[1:] }}">
       </video>
       {% else %}
-      <div class="w-full aspect-[3/4] overflow-hidden"><img src="{{ asset_b.path }}" alt="Asset B" class="w-full h-full object-cover object-bottom"></div>
+      <div class="w-full aspect-[3/4] overflow-hidden"><img src="{{ asset_b.path }}" alt="Asset B" class="w-full h-full object-cover" style="object-position: bottom;"></div> 
       {% endif %}
     {% else %}
     <div class="w-full h-full bg-white"></div>
