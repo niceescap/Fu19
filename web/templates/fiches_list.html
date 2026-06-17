@@ -247,14 +247,14 @@
   <!-- ── ASSET A ────────────────────────────────────────────────────── -->
   <a href="/skilla"
      class="asset-card rounded-xl shadow-sm overflow-hidden relative cursor-pointer"
-     style="aspect-ratio: 3/4;">
+     style="">
     {% if asset_a %}
       {% if asset_a.type == 'video' %}
       <video autoplay muted loop playsinline class="w-full h-full object-cover">
         <source src="{{ asset_a.path }}" type="video/{{ asset_a.ext[1:] }}">
       </video>
       {% else %}
-      <img src="{{ asset_a.path }}" alt="Asset A" class="w-full h-full object-cover">
+      <div class="w-full aspect-[3/4] overflow-hidden"><img src="{{ asset_a.path }}" alt="Asset A" class="w-full h-full object-cover"></div>
       {% endif %}
     {% else %}
     <div class="w-full h-full bg-white"></div>
@@ -264,14 +264,14 @@
   <!-- ── ASSET B ────────────────────────────────────────────────────── -->
   <a href="/skillb"
      class="asset-card rounded-xl shadow-sm overflow-hidden relative cursor-pointer"
-     style="aspect-ratio: 3/4;">
+     style="">
     {% if asset_b %}
       {% if asset_b.type == 'video' %}
       <video autoplay muted loop playsinline class="w-full h-full object-cover">
         <source src="{{ asset_b.path }}" type="video/{{ asset_b.ext[1:] }}">
       </video>
       {% else %}
-      <img src="{{ asset_b.path }}" alt="Asset B" class="w-full h-full object-cover">
+      <div class="w-full aspect-[3/4] overflow-hidden"><img src="{{ asset_b.path }}" alt="Asset B" class="w-full h-full object-cover"></div>
       {% endif %}
     {% else %}
     <div class="w-full h-full bg-white"></div>
@@ -281,14 +281,14 @@
   <!-- ── ASSET C ────────────────────────────────────────────────────── -->
   <a href="/skillc"
      class="asset-card rounded-xl shadow-sm overflow-hidden relative cursor-pointer"
-     style="aspect-ratio: 3/4;">
+     style="">
     {% if asset_c %}
       {% if asset_c.type == 'video' %}
       <video autoplay muted loop playsinline class="w-full h-full object-cover">
         <source src="{{ asset_c.path }}" type="video/{{ asset_c.ext[1:] }}">
       </video>
       {% else %}
-      <img src="{{ asset_c.path }}" alt="Asset C" class="w-full h-full object-cover">
+      <div class="w-full aspect-[3/4] overflow-hidden"><img src="{{ asset_c.path }}" alt="Asset C" class="w-full h-full object-cover"></div>
       {% endif %}
     {% else %}
     <div class="w-full h-full bg-white"></div>
