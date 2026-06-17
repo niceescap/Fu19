@@ -269,12 +269,13 @@
     {% if asset_b %}
       {% if asset_b.type == 'video' %}
       <video autoplay muted loop playsinline class="w-full h-full object-cover">
-        <source src="{{ asset_b.path }}" type="video/{{ asset_b.ext[1:] }}">
+       <source src="{{ asset_b.path }}" type="video/{{ asset_b.ext[1:] }}">
       </video>
       {% else %}
       <div class="w-full aspect-[3/4] overflow-hidden relative">
         <img src="{{ asset_b.path }}" alt="Asset B"
-             style="position: absolute; bottom: 0; left: 0; width: 100%; height: auto; min-height: 100%;">
+            style="position: absolute; bottom: 0; left: 50%; transform: translateX(-50%);
+                    height: 100%; width: auto; max-width: none;">
       </div>
       {% endif %}
     {% else %}
