@@ -266,5 +266,25 @@
     if (chatBox) {
         chatBox.scrollTop = chatBox.scrollHeight;
     }
+
+    // Indicateur de chargement lors de l'envoi (le form POST recharge la page)
+    const mediaForm = document.getElementById('media-form');
+    if (mediaForm) {
+        mediaForm.addEventListener('submit', function() {
+            const sendBtn = document.getElementById('media-send-btn');
+            sendBtn.disabled = true;
+            sendBtn.textContent = '⏳ Envoi…';
+            // Ajouter l'indicateur typing dans le chat
+            const indicator = document.createElement('div');
+            indicator.className = 'flex justify-start';
+            indicator.innerHTML = `
+                <div class="typing-indicator">
+                    <span class="dot"></span><span class="dot"></span><span class="dot"></span>
+                    <span class="typing-text">L'IA analyse votre message…</span>
+                </div>`;
+            chatBox.appendChild(indicator);
+            chatBox.scrollTop = chatBox.scrollHeight;
+        });
+    }
 </script>
 {% endblock %}
