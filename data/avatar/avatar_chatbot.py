@@ -32,7 +32,7 @@ PRESETS_DIR = AVATAR_DIR / "presets"         # fallback
 BASE_FJC = Path(__file__).resolve().parent.parent.parent  # ~/fjc/
 if str(BASE_FJC) not in sys.path:
     sys.path.insert(0, str(BASE_FJC))
-from core.config import GROQ_API_KEY, GROQ_MODEL
+from core.config import OR_API_KEY, OR_MODEL, OR_URL, OR_REFERER, OR_APP_TITLE
 if str(AVATAR_DIR) not in sys.path:
     sys.path.insert(0, str(AVATAR_DIR))
 from engine import build_avatar, DEFAULTS, save_config
