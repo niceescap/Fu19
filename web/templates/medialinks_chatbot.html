@@ -114,10 +114,10 @@
         </div>
 
         <!-- Formulaire d'envoi -->
-        <form method="POST" action="/medialinks/{{ athlete_id }}/send_message" class="border-t border-slate-200 p-3 flex gap-2 bg-slate-50">
+        <form id="media-form" method="POST" action="/medialinks/{{ athlete_id }}/send_message" class="border-t border-slate-200 p-3 flex gap-2 bg-slate-50">
             <input type="text" name="message" placeholder="Ex: https://www.instagram.com/p/..." required
                    class="flex-1 rounded-lg border border-slate-200 px-3 py-2 text-sm focus:border-indigo-400 focus:outline-none focus:ring-1 focus:ring-indigo-400">
-            <button type="submit"
+            <button type="submit" id="media-send-btn"
                     class="rounded-md bg-indigo-600 px-4 py-2 text-sm font-semibold text-white shadow-sm hover:bg-indigo-500 transition-colors">
                 Envoyer
             </button>
