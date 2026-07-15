@@ -55,43 +55,48 @@ def resolve_url(url):
             pass
     return normalize_url(url)
 
-def query_groq(system_prompt, history, user_input):
-    """Appelle l'API Groq et retourne TOUJOURS un dict avec bot_message et extracted_medias."""
-    if not GROQ_API_KEY:
-        print("[Groq] Clé API absente.")
-        return {"bot_message": "Clé API Groq manquante !", "extracted_medias": []}
+def query_llm(system_prompt, history, user_input):
+    """Appelle l'API OpenRouter et retourne TOUJOURS un dict avec bot_message et extracted_medias."""
+    if not OR_API_KEY:
+        print("[LLM] Clé API absente.")
+        return {"bot_message": "Clé API OpenRouter manquante !", "extracted_medias": []}
 
     messages = [{"role": "system", "content": system_prompt}]
     messages.extend(history[-6:])
     messages.append({"role": "user", "content": user_input})
 
     payload = {
-        "model": GROQ_MODEL,
+        "model": OR_MODEL,
         "messages": messages,
         "temperature": 0.3,
         "response_format": {"type": "json_object"}
     }
-    headers = {"Authorization": f"Bearer {GROQ_API_KEY}", "Content-Type": "application/json"}
+    headers = {
+        "Authorization": f"Bearer {OR_API_KEY}",
+        "Content-Type": "application/json",
+        "HTTP-Referer": OR_REFERER,
+        "X-Title": OR_APP_TITLE,
+    }
 
     try:
-        res = requests.post(GROQ_URL, headers=headers, json=payload, timeout=10)
-        print(f"[Groq] Statut HTTP : {res.status_code}")
+        res = requests.post(OR_URL, headers=headers, json=payload, timeout=30)
+        print(f"[LLM] Statut HTTP : {res.status_code}")
         if res.status_code == 200:
             content = res.json()['choices'][0]['message']['content']
-            print(f"[Groq] Réponse brute : {content[:120]}...")
+            print(f"[LLM] Réponse brute : {content[:120]}...")
             try:
                 return json.loads(content)
             except json.JSONDecodeError:
-                print("[Groq] JSON invalide, retour fallback.")
+                print("[LLM] JSON invalide, retour fallback.")
                 return {"bot_message": "Le format de la réponse est incorrect.", "extracted_medias": []}
         else:
-            print(f"[Groq] Erreur API : {res.text[:200]}")
+            print(f"[LLM] Erreur API : {res.text[:200]}")
             return {"bot_message": f"Erreur API ({res.status_code}).", "extracted_medias": []}
     except requests.exceptions.RequestException as e:
-        print(f"[Groq] Erreur réseau : {e}")
-        return {"bot_message": "Problème réseau avec l'API Groq.", "extracted_medias": []}
+        print(f"[LLM] Erreur réseau : {e}")
+        return {"bot_message": "Problème réseau avec l'API LLM.", "extracted_medias": []}
     except Exception as e:
-        print(f"[Groq] Erreur inattendue : {e}")
+        print(f"[LLM] Erreur inattendue : {e}")
         return {"bot_message": "Oups, petit bug du LLM...", "extracted_medias": []}
 
 def scrape_open_graph(url):
