@@ -291,6 +291,12 @@
         addMsg(text, "user");
         input.value = "";
         sendBtn.disabled = true;
+        // Indicateur de chargement
+        const loader = document.createElement("div");
+        loader.className = "typing-indicator";
+        loader.innerHTML = '<span></span><span></span><span></span><span class="typing-text">L\'IA réfléchit…</span>';
+        messages.appendChild(loader);
+        messages.scrollTop = messages.scrollHeight;
         try {
             const res = await fetch("/avatar/chat", {
                 method: "POST",
@@ -298,12 +304,14 @@
                 body: JSON.stringify({ message: text })
             });
             const data = await res.json();
+            loader.remove();
             addMsg(data.message, "bot");
             if (data.avatar_url) {
                 document.getElementById("avatar-preview").innerHTML =
                     `<img src="${data.avatar_url}?t=${Date.now()}" alt="avatar">`;
             }
         } catch (err) {
+            loader.remove();
             addMsg("Erreur de connexion.", "system");
         }
         sendBtn.disabled = false;
