@@ -190,6 +190,8 @@ def call_llm(messages: list) -> str:
         json=payload,
         timeout=30
     )
+    if response.status_code != 200:
+        print(f"[LLM] Erreur {response.status_code} : {response.text[:500]}")
     response.raise_for_status()
     return response.json()["choices"][0]["message"]["content"]
 
