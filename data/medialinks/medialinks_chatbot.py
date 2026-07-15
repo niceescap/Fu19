@@ -178,8 +178,8 @@ def send_message(athlete_id):
     history = session.get("chat_history", [])
     history.append({"role": "user", "content": user_msg})
 
-    # Appel LLM (Groq)
-    result = query_groq(DEFAULT_PROMPT, history, user_msg)
+    # Appel LLM (OpenRouter)
+    result = query_llm(DEFAULT_PROMPT, history, user_msg)
     bot_msg = result.get("bot_message", "Analyse terminée.")
     history.append({"role": "assistant", "content": bot_msg})
     session["chat_history"] = history
