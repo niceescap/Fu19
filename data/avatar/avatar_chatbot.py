@@ -171,19 +171,21 @@ def save_history(user_id: str, history: list):
         json.dump(history, f, indent=2, ensure_ascii=False)
 
 
-def call_groq(messages: list) -> str:
+def call_llm(messages: list) -> str:
     headers = {
-        "Authorization": f"Bearer {GROQ_API_KEY}",
-        "Content-Type":  "application/json"
+        "Authorization": f"Bearer {OR_API_KEY}",
+        "Content-Type":  "application/json",
+        "HTTP-Referer":  OR_REFERER,
+        "X-Title":       OR_APP_TITLE,
     }
     payload = {
-        "model":       GROQ_MODEL,
+        "model":       OR_MODEL,
         "messages":    messages,
         "temperature": 0.4,
         "max_tokens":  1024
     }
     response = requests.post(
-        "https://api.groq.com/openai/v1/chat/completions",
+        OR_URL,
         headers=headers,
         json=payload,
         timeout=30
