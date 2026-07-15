@@ -436,8 +436,8 @@ if __name__ == "__main__":
     import os
     from flask import Flask
 
-    if not GROQ_API_KEY:
-        print("❌ GROQ_API_KEY manquante — vérifie ~/.bashrc")
+    if not OR_API_KEY:
+        print("❌ OR_API_KEY manquante — vérifie /etc/systemd/system/fu19.env")
         sys.exit(1)
 
     standalone = Flask(__name__)
