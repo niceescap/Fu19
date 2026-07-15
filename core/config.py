@@ -64,25 +64,22 @@ BCRYPT_ROUNDS = 12 if ENV == "PRODUCTION" else 4
 # 5. CONFIGURATION DES AGENTS EXTERNES (IA & SCRAPING)
 # ==============================================================================
 
-# ── Groq (groq.com) — LLM API ──────────────────────────────────────────────
+# ── OpenRouter (openrouter.ai) — LLM API ────────────────────────────────────
 #
-#   Pour obtenir ta clé : https://console.groq.com/keys
+#   Pour obtenir ta clé : https://openrouter.ai/keys
 #
 #   La clé ne doit JAMAIS apparaître dans ce fichier.
-#   Elle se place une seule fois dans ton environnement shell :
+#   En production, elle est injectée via /etc/systemd/system/fu19.env :
 #
-#     Sur Termux / Linux — ajoute cette ligne dans ~/.bashrc ou ~/.profile :
-#       export GROQ_API_KEY="gsk_xxxxxxxxxxxxxxxxxxxx"
+#     OR_API_KEY=sk-or-v1-xxxxxxxxxxxxxxxxxxxx
+#     OR_MODEL=nvidia/nemotron-3.5-content-safety:free
 #
-#     Puis recharge le shell :
-#       source ~/.bashrc
-#
-#     Pour vérifier que la variable est bien visible :
-#       echo $GROQ_API_KEY
-#
-GROQ_API_KEY     = os.environ.get("GROQ_API_KEY", "")
-GROQ_MODEL       = "llama-3.3-70b-versatile"
-GROQ_MAX_RETRIES = 3
+OR_API_KEY       = os.environ.get("OR_API_KEY", "")
+OR_MODEL         = os.environ.get("OR_MODEL", "nvidia/nemotron-3.5-content-safety:free")
+OR_URL           = "https://openrouter.ai/api/v1/chat/completions"
+OR_MAX_RETRIES   = 3
+OR_REFERER       = os.environ.get("BASE_URL", "https://fu19.org")
+OR_APP_TITLE     = "Fu19"
 
 
 # ── Limites fichiers ───────────────────────────────────────────────────────

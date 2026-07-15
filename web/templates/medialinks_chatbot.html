@@ -44,6 +44,41 @@
     .drop-zone.over {
         border-color: #3b82f6;
     }
+
+    /* Indicateur de saisie LLM (typing dots) */
+    .typing-indicator {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        background: #1f2937;
+        color: #e5e7eb;
+        border-radius: 16px 16px 16px 4px;
+        padding: 10px 16px;
+        max-width: 80%;
+    }
+    .typing-indicator .dot {
+        width: 8px;
+        height: 8px;
+        border-radius: 50%;
+        background: #94a3b8;
+        animation: typing-pulse 1.4s infinite ease-in-out;
+    }
+    .typing-indicator .dot:nth-child(2) { animation-delay: 0.2s; }
+    .typing-indicator .dot:nth-child(3) { animation-delay: 0.4s; }
+    @keyframes typing-pulse {
+        0%, 60%, 100% { transform: scale(0.7); opacity: 0.4; }
+        30% { transform: scale(1); opacity: 1; }
+    }
+    .typing-text {
+        font-size: 0.85rem;
+        color: #94a3b8;
+        margin-left: 4px;
+        animation: typing-fade 1.5s infinite ease-in-out;
+    }
+    @keyframes typing-fade {
+        0%, 100% { opacity: 0.5; }
+        50% { opacity: 1; }
+    }
 </style>
 {% endblock %}
 
@@ -79,10 +114,10 @@
         </div>
 
         <!-- Formulaire d'envoi -->
-        <form method="POST" action="/medialinks/{{ athlete_id }}/send_message" class="border-t border-slate-200 p-3 flex gap-2 bg-slate-50">
+        <form id="media-form" method="POST" action="/medialinks/{{ athlete_id }}/send_message" class="border-t border-slate-200 p-3 flex gap-2 bg-slate-50">
             <input type="text" name="message" placeholder="Ex: https://www.instagram.com/p/..." required
                    class="flex-1 rounded-lg border border-slate-200 px-3 py-2 text-sm focus:border-indigo-400 focus:outline-none focus:ring-1 focus:ring-indigo-400">
-            <button type="submit"
+            <button type="submit" id="media-send-btn"
                     class="rounded-md bg-indigo-600 px-4 py-2 text-sm font-semibold text-white shadow-sm hover:bg-indigo-500 transition-colors">
                 Envoyer
             </button>
@@ -230,6 +265,26 @@
     const chatBox = document.getElementById('chat-box');
     if (chatBox) {
         chatBox.scrollTop = chatBox.scrollHeight;
+    }
+
+    // Indicateur de chargement lors de l'envoi (le form POST recharge la page)
+    const mediaForm = document.getElementById('media-form');
+    if (mediaForm) {
+        mediaForm.addEventListener('submit', function() {
+            const sendBtn = document.getElementById('media-send-btn');
+            sendBtn.disabled = true;
+            sendBtn.textContent = '⏳ Envoi…';
+            // Ajouter l'indicateur typing dans le chat
+            const indicator = document.createElement('div');
+            indicator.className = 'flex justify-start';
+            indicator.innerHTML = `
+                <div class="typing-indicator">
+                    <span class="dot"></span><span class="dot"></span><span class="dot"></span>
+                    <span class="typing-text">L'IA analyse votre message…</span>
+                </div>`;
+            chatBox.appendChild(indicator);
+            chatBox.scrollTop = chatBox.scrollHeight;
+        });
     }
 </script>
 {% endblock %}

@@ -32,7 +32,7 @@ PRESETS_DIR = AVATAR_DIR / "presets"         # fallback
 BASE_FJC = Path(__file__).resolve().parent.parent.parent  # ~/fjc/
 if str(BASE_FJC) not in sys.path:
     sys.path.insert(0, str(BASE_FJC))
-from core.config import GROQ_API_KEY, GROQ_MODEL
+from core.config import OR_API_KEY, OR_MODEL, OR_URL, OR_REFERER, OR_APP_TITLE
 if str(AVATAR_DIR) not in sys.path:
     sys.path.insert(0, str(AVATAR_DIR))
 from engine import build_avatar, DEFAULTS, save_config
@@ -171,23 +171,27 @@ def save_history(user_id: str, history: list):
         json.dump(history, f, indent=2, ensure_ascii=False)
 
 
-def call_groq(messages: list) -> str:
+def call_llm(messages: list) -> str:
     headers = {
-        "Authorization": f"Bearer {GROQ_API_KEY}",
-        "Content-Type":  "application/json"
+        "Authorization": f"Bearer {OR_API_KEY}",
+        "Content-Type":  "application/json",
+        "HTTP-Referer":  OR_REFERER,
+        "X-Title":       OR_APP_TITLE,
     }
     payload = {
-        "model":       GROQ_MODEL,
+        "model":       OR_MODEL,
         "messages":    messages,
         "temperature": 0.4,
         "max_tokens":  1024
     }
     response = requests.post(
-        "https://api.groq.com/openai/v1/chat/completions",
+        OR_URL,
         headers=headers,
         json=payload,
         timeout=30
     )
+    if response.status_code != 200:
+        print(f"[LLM] Erreur {response.status_code} : {response.text[:500]}")
     response.raise_for_status()
     return response.json()["choices"][0]["message"]["content"]
 
@@ -271,9 +275,9 @@ def chat():
     for entry in history[-10:]:
         context.append(entry)
     try:
-        llm_response_text = call_groq(context)
+        llm_response_text = call_llm(context)
     except Exception as e:
-        error_msg = f"Erreur API Groq : {e}"
+        error_msg = f"Erreur API LLM : {e}"
         history.append({"role": "assistant", "content": error_msg})
         save_history(user_id, history)
         return jsonify({"message": error_msg, "avatar_url": None})
@@ -434,8 +438,8 @@ if __name__ == "__main__":
     import os
     from flask import Flask
 
-    if not GROQ_API_KEY:
-        print("❌ GROQ_API_KEY manquante — vérifie ~/.bashrc")
+    if not OR_API_KEY:
+        print("❌ OR_API_KEY manquante — vérifie /etc/systemd/system/fu19.env")
         sys.exit(1)
 
     standalone = Flask(__name__)
