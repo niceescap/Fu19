@@ -78,7 +78,7 @@ OR_API_KEY       = os.environ.get("OR_API_KEY", "")
 OR_MODEL         = os.environ.get("OR_MODEL", "nvidia/nemotron-3.5-content-safety:free")
 OR_URL           = "https://openrouter.ai/api/v1/chat/completions"
 OR_MAX_RETRIES   = 3
-OR_REFERER       = BASE_URL
+OR_REFERER       = os.environ.get("BASE_URL", "https://fu19.org")
 OR_APP_TITLE     = "Fu19"
 
 
