@@ -13,7 +13,6 @@ from sqlalchemy.orm.attributes import flag_modified
 medialinks_bp = Blueprint("medialinks_bp", __name__, template_folder="templates")
 
 from core.config import OR_API_KEY, OR_MODEL, OR_URL, OR_REFERER, OR_APP_TITLE
-from data.database import SessionLocal
 
 TRACKING_PARAMS = ['utm_source', 'utm_medium', 'utm_campaign', 'utm_term', 'utm_content',
                    'fbclid', 'gclid', 'si', 'feature', 'pp', 'igshid']
