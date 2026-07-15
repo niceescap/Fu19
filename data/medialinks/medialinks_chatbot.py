@@ -168,7 +168,7 @@ def chatbot_interface(athlete_id):
 
 @medialinks_bp.route("/<athlete_id>/send_message", methods=["POST"])
 def send_message(athlete_id):
-    """Traite le message, interroge Groq et écrit IMMEDIATEMENT en BDD."""
+    """Traite le message, interroge OpenRouter et écrit IMMEDIATEMENT en BDD."""
     user_msg = request.form.get("message", "")
     if not user_msg:
         return redirect(url_for("medialinks_bp.chatbot_interface", athlete_id=athlete_id))
