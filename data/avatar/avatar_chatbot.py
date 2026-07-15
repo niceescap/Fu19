@@ -271,9 +271,9 @@ def chat():
     for entry in history[-10:]:
         context.append(entry)
     try:
-        llm_response_text = call_groq(context)
+        llm_response_text = call_llm(context)
     except Exception as e:
-        error_msg = f"Erreur API Groq : {e}"
+        error_msg = f"Erreur API LLM : {e}"
         history.append({"role": "assistant", "content": error_msg})
         save_history(user_id, history)
         return jsonify({"message": error_msg, "avatar_url": None})
