@@ -12,10 +12,8 @@ from sqlalchemy.orm.attributes import flag_modified
 
 medialinks_bp = Blueprint("medialinks_bp", __name__, template_folder="templates")
 
-# Configuration Groq
-GROQ_API_KEY = os.environ.get("GROQ_API_KEY", "")
-GROQ_MODEL = "llama-3.3-70b-versatile"
-GROQ_URL = "https://api.groq.com/openai/v1/chat/completions"
+from core.config import OR_API_KEY, OR_MODEL, OR_URL, OR_REFERER, OR_APP_TITLE
+from data.database import SessionLocal
 
 TRACKING_PARAMS = ['utm_source', 'utm_medium', 'utm_campaign', 'utm_term', 'utm_content',
                    'fbclid', 'gclid', 'si', 'feature', 'pp', 'igshid']
